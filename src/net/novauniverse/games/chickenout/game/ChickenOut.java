@@ -37,8 +37,8 @@ import net.novauniverse.games.chickenout.game.utils.WrappedChickenOutMob;
 import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.commons.tasks.Task;
 import net.zeeraa.novacore.spigot.NovaCore;
-import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependantSound;
-import net.zeeraa.novacore.spigot.abstraction.events.VersionIndependantPlayerPickUpItemEvent;
+import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentSound;
+import net.zeeraa.novacore.spigot.abstraction.events.VersionIndependentPlayerPickUpItemEvent;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.GameEndReason;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.MapGame;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.elimination.PlayerQuitEliminationAction;
@@ -377,7 +377,7 @@ public class ChickenOut extends MapGame implements Listener {
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-	public void onPlayerPickupItem(VersionIndependantPlayerPickUpItemEvent e) {
+	public void onPlayerPickupItem(VersionIndependentPlayerPickUpItemEvent e) {
 		Player player = e.getPlayer();
 		Log.trace("ChickenOut", "Pick up item " + e.getItem().getItemStack().getType().name());
 		if (e.getItem().getItemStack().getType() == Material.FEATHER) {
@@ -385,7 +385,7 @@ public class ChickenOut extends MapGame implements Listener {
 
 			if (players.contains(player.getUniqueId())) {
 				addFeathers(player, e.getItem().getItemStack().getAmount());
-				VersionIndependantSound.ITEM_PICKUP.playAtLocation(player.getLocation());
+				VersionIndependentSound.ITEM_PICKUP.playAtLocation(player.getLocation());
 				e.getItem().remove();
 			}
 		}
