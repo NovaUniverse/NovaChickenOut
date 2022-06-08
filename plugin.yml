@@ -1,0 +1,6 @@
+name: ChickenOut
+main: net.novauniverse.games.chickenout.NovaChickenOut
+description: Novauniverse Chickenout
+version: 1.0
+depend: [NovaCore, NovaCoreGameEngine]
+softdepend: [NovaGamesTarget]
