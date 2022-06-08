@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
 import net.novauniverse.games.chickenout.game.mobs.ChickenOutMobProvider;
 import net.zeeraa.novacore.spigot.utils.ItemBuilder;
 
-public class Level1Zombie implements ChickenOutMobProvider {
+public class ExampleMob implements ChickenOutMobProvider {
 	// Providers can't have a constructor that accepts arguments since that messes
 	// with the reflection part of the plugin
 

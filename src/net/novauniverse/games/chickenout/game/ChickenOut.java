@@ -171,8 +171,6 @@ public class ChickenOut extends MapGame implements Listener {
 
 					Vector rotation = new Vector((random.nextDouble() * 2.0) - 1.0, 0, (random.nextDouble() * 2.0) - 1.0);
 
-					System.out.println(rotation);
-
 					Location randomLocation = originPoint.add(rotation.normalize().multiply(MOB_PLAYER_SPAWN_RADIUS));
 					// LocationUtils.getRandomLocationWithRadiusFromCenter(player.getLocation(),
 					// MOB_PLAYER_SPAWN_RADIUS, getRandom(), false, MOB_PLAYER_SPAWN_RADIUS);
