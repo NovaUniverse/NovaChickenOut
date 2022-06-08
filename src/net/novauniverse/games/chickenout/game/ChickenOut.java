@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -20,7 +21,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.player.PlayerPickupItemEvent;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -37,6 +38,7 @@ import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.commons.tasks.Task;
 import net.zeeraa.novacore.spigot.NovaCore;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependantSound;
+import net.zeeraa.novacore.spigot.abstraction.events.VersionIndependantPlayerPickUpItemEvent;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.GameEndReason;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.MapGame;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.elimination.PlayerQuitEliminationAction;
@@ -48,7 +50,7 @@ import net.zeeraa.novacore.spigot.utils.LocationUtils;
 import net.zeeraa.novacore.spigot.utils.PlayerUtils;
 import net.zeeraa.novacore.spigot.utils.VectorArea;
 
-public class ChickenOut extends MapGame {
+public class ChickenOut extends MapGame implements Listener {
 	private boolean started;
 	private boolean ended;
 
@@ -99,6 +101,12 @@ public class ChickenOut extends MapGame {
 				wrappedMobs.forEach(wm -> wm.updateMobTarget());
 				spawnFeathers();
 				spawnMobs();
+
+				if (!hasEnded()) {
+					if (players.size() == 0) {
+						endGame(GameEndReason.ALL_FINISHED);
+					}
+				}
 			}
 		}, 20L);
 
@@ -123,7 +131,7 @@ public class ChickenOut extends MapGame {
 					VectorArea area = config.getFeatherSpawnAreas().get(getRandom().nextInt(config.getFeatherSpawnAreas().size()));
 					Vector randLoc = area.getRandomVectorWithin(getRandom());
 
-					Block block = getWorld().getHighestBlockAt(randLoc.getBlockX(), randLoc.getBlockZ());
+					Block block = LocationUtils.getHighestBlockAtLocation(randLoc.toLocation(getWorld())); // getWorld().getHighestBlockAt(randLoc.getBlockX(), randLoc.getBlockZ());
 					if (block != null) {
 						Location location = LocationUtils.centerLocation(block.getLocation());
 						location.add(0, 5, 0);
@@ -153,17 +161,25 @@ public class ChickenOut extends MapGame {
 				int existing = wrappedMobs.stream().filter(mob -> mob.getTarget().toString().equalsIgnoreCase(player.getUniqueId().toString())).toArray().length;
 				int toSpawn = config.getTargetMobCount() - existing;
 				for (int i = 0; i < toSpawn; i++) {
-					ChickenOutMobProvider[] providers = (ChickenOutMobProvider[]) ChickenOutMobRepo.getProviders().stream().filter(mob -> mob.getLevel() == level).toArray();
-					if (providers.length == 0) {
+					List<ChickenOutMobProvider> providers = ChickenOutMobRepo.getProviders().stream().filter(mob -> mob.getLevel() == level).collect(Collectors.toList());
+					if (providers.size() == 0) {
 						Log.warn("ChickenOut", "No mob providers for level " + level + " was found");
 						break;
 					}
 
-					Location randomLocation = LocationUtils.getRandomLocationWithRadiusFromCenter(player.getLocation(), MOB_PLAYER_SPAWN_RADIUS, getRandom(), false);
-					int y = player.getWorld().getHighestBlockYAt(randomLocation);
+					Location originPoint = player.getLocation();
+
+					Vector rotation = new Vector((random.nextDouble() * 2.0) - 1.0, 0, (random.nextDouble() * 2.0) - 1.0);
+
+					System.out.println(rotation);
+
+					Location randomLocation = originPoint.add(rotation.normalize().multiply(MOB_PLAYER_SPAWN_RADIUS));
+					// LocationUtils.getRandomLocationWithRadiusFromCenter(player.getLocation(),
+					// MOB_PLAYER_SPAWN_RADIUS, getRandom(), false, MOB_PLAYER_SPAWN_RADIUS);
+					int y = LocationUtils.getHighestYAtLocation(randomLocation);
 					randomLocation.setY(y + 3);
 
-					ChickenOutMobProvider provider = providers[getRandom().nextInt(providers.length)];
+					ChickenOutMobProvider provider = providers.get(getRandom().nextInt(providers.size()));
 					Creature creature = provider.spawn(randomLocation, player);
 					creature.setCustomName("[LVL " + provider.getLevel() + "] " + creature.getCustomName());
 					WrappedChickenOutMob wrappedMob = new WrappedChickenOutMob(creature, player.getUniqueId(), provider.getLevel());
@@ -314,7 +330,7 @@ public class ChickenOut extends MapGame {
 			if (toUse.size() == 0) {
 				// Could not load spawn locations. break out to prevent server from crashing
 				Log.fatal("ChickenOut", "The map " + this.getActiveMap().getMapData().getMapName() + " has no spawn locations. Ending game to prevent crash");
-				Bukkit.getServer().broadcastMessage(ChatColor.RED + "Spleef has run into an uncorrectable error and has to be ended");
+				Bukkit.getServer().broadcastMessage(ChatColor.RED + "ChickenOut has run into an uncorrectable error and has to be ended");
 				this.endGame(GameEndReason.ERROR);
 				return;
 			}
@@ -363,14 +379,14 @@ public class ChickenOut extends MapGame {
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-	public void onPlayerPickupItem(PlayerPickupItemEvent e) {
+	public void onPlayerPickupItem(VersionIndependantPlayerPickUpItemEvent e) {
 		Player player = e.getPlayer();
+		Log.trace("ChickenOut", "Pick up item " + e.getItem().getItemStack().getType().name());
 		if (e.getItem().getItemStack().getType() == Material.FEATHER) {
 			e.setCancelled(true);
 
 			if (players.contains(player.getUniqueId())) {
 				addFeathers(player, e.getItem().getItemStack().getAmount());
-				Log.warn("Player picked up feather. TODO: add feather count");
 				VersionIndependantSound.ITEM_PICKUP.playAtLocation(player.getLocation());
 				e.getItem().remove();
 			}

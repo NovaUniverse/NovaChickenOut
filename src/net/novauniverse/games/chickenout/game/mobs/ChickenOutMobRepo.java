@@ -1,6 +1,7 @@
 package net.novauniverse.games.chickenout.game.mobs;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -31,8 +32,15 @@ public class ChickenOutMobRepo {
 
 		Set<Class<?>> classes = ClassFinder.getClasses(FileUtils.toFile(plugin.getClass().getProtectionDomain().getCodeSource().getLocation()), packagee);
 		for (Class<?> clazz : classes) {
-			// Ignore anonymous classes
-			if (clazz.getName().contains("$")) {
+			if (clazz.isInterface()) {
+				continue;
+			}
+
+			if (clazz.isAnonymousClass()) {
+				continue;
+			}
+
+			if (Modifier.isAbstract(clazz.getModifiers())) {
 				continue;
 			}
 
