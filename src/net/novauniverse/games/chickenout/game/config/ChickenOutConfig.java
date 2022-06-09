@@ -15,7 +15,12 @@ public class ChickenOutConfig extends MapModule {
 
 	private int targetFeatherCount;
 	private int targetMobCount;
+	
+	private int levelTime;
+	private int maxLevel;
 
+	private int finalRoundTime;
+	
 	public ChickenOutConfig(JSONObject json) {
 		super(json);
 
@@ -33,6 +38,11 @@ public class ChickenOutConfig extends MapModule {
 
 		targetFeatherCount = json.getInt("target_feather_count");
 		targetMobCount = json.getInt("target_mob_count");
+		
+		levelTime = json.getInt("level_time");
+		maxLevel = json.getInt("max_level");
+		
+		finalRoundTime = json.getInt("final_round_time");
 	}
 
 	public List<VectorArea> getMobSpawnAreas() {
@@ -49,5 +59,17 @@ public class ChickenOutConfig extends MapModule {
 
 	public int getTargetMobCount() {
 		return targetMobCount;
+	}
+	
+	public int getFinalRoundTime() {
+		return finalRoundTime;
+	}
+	
+	public int getLevelTime() {
+		return levelTime;
+	}
+	
+	public int getMaxLevel() {
+		return maxLevel;
 	}
 }

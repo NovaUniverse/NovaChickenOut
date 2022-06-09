@@ -36,7 +36,9 @@ import net.novauniverse.games.chickenout.game.utils.WrappedChickenOutFeather;
 import net.novauniverse.games.chickenout.game.utils.WrappedChickenOutMob;
 import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.commons.tasks.Task;
+import net.zeeraa.novacore.commons.utils.TextUtils;
 import net.zeeraa.novacore.spigot.NovaCore;
+import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentSound;
 import net.zeeraa.novacore.spigot.abstraction.events.VersionIndependentPlayerPickUpItemEvent;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.GameEndReason;
@@ -64,10 +66,15 @@ public class ChickenOut extends MapGame implements Listener {
 
 	private static final double MOB_PLAYER_SPAWN_RADIUS = 10;
 
+	private int roundTimeLeft;
+	private int finalTimeLeft;
+
 	private ChickenOutConfig config;
 
 	private Task monitorTask;
 	private Task particleTask;
+	private Task roundTimer;
+	private Task finalTimer;
 
 	private Map<UUID, Integer> feathers;
 
@@ -80,6 +87,9 @@ public class ChickenOut extends MapGame implements Listener {
 		ended = false;
 		teamSpawnLocations = new HashMap<>();
 
+		roundTimeLeft = 0;
+		finalTimeLeft = 0;
+
 		config = null;
 
 		wrappedFeathers = new ArrayList<>();
@@ -88,6 +98,57 @@ public class ChickenOut extends MapGame implements Listener {
 		feathers = new HashMap<UUID, Integer>();
 
 		level = 1;
+
+		finalTimer = new SimpleTask(plugin, new Runnable() {
+			@Override
+			public void run() {
+				if (finalTimeLeft > 0) {
+					finalTimeLeft--;
+
+					if (finalTimeLeft == 30 || finalTimeLeft == 60) {
+						Bukkit.getServer().broadcastMessage(ChatColor.RED + "" + finalTimeLeft + " seconds left " + TextUtils.ICON_WARNING);
+						Bukkit.getServer().getOnlinePlayers().forEach(player -> {
+							VersionIndependentSound.NOTE_PLING.play(player);
+							VersionIndependentUtils.get().sendTitle(player, "", ChatColor.RED + TextUtils.ICON_WARNING + " " + finalTimeLeft + " seconds left " + TextUtils.ICON_WARNING, 0, 40, 10);
+						});
+					}
+
+					if (finalTimeLeft <= 10) {
+						Bukkit.getServer().getOnlinePlayers().forEach(player -> {
+							VersionIndependentSound.NOTE_PLING.play(player);
+							VersionIndependentUtils.get().sendTitle(player, "", ChatColor.RED + TextUtils.ICON_WARNING + " " + finalTimeLeft + " second" + (finalTimeLeft == 1 ? "" : "s") + " left " + TextUtils.ICON_WARNING, 0, 20, 10);
+						});
+					}
+				} else {
+					Task.tryStopTask(finalTimer);
+					Bukkit.getServer().getOnlinePlayers().forEach(player -> {
+						if (players.contains(player.getUniqueId())) {
+							player.setGameMode(GameMode.SPECTATOR);
+							player.getWorld().strikeLightning(player.getLocation());
+						}
+					});
+					endGame(GameEndReason.TIME);
+				}
+			}
+		}, 20L);
+
+		roundTimer = new SimpleTask(plugin, new Runnable() {
+			@Override
+			public void run() {
+				if (roundTimeLeft > 0) {
+					roundTimeLeft--;
+				} else {
+					roundTimeLeft = config.getLevelTime();
+					level++;
+					// TODO: Level up message
+					Bukkit.getServer().broadcastMessage(ChatColor.RED + "Monsters will now spawn at level " + level);
+					if (level >= config.getMaxLevel()) {
+						Task.tryStopTask(roundTimer);
+						Task.tryStartTask(finalTimer);
+					}
+				}
+			}
+		}, 20L);
 
 		monitorTask = new SimpleTask(plugin, new Runnable() {
 			@Override
@@ -116,6 +177,22 @@ public class ChickenOut extends MapGame implements Listener {
 				wrappedFeathers.forEach(f -> f.showParticles());
 			}
 		}, 5L);
+	}
+
+	public int getRoundTimeLeft() {
+		return roundTimeLeft;
+	}
+
+	public int getFinalTimeLeft() {
+		return finalTimeLeft;
+	}
+
+	public boolean isRoundTimerRunning() {
+		return roundTimer.isRunning();
+	}
+
+	public boolean isFinalTimerRunning() {
+		return finalTimer.isRunning();
 	}
 
 	public int getLevel() {
@@ -357,8 +434,12 @@ public class ChickenOut extends MapGame implements Listener {
 
 		spawnFeathers();
 
+		roundTimeLeft = config.getLevelTime();
+		finalTimeLeft = config.getFinalRoundTime();
+
 		Task.tryStartTask(monitorTask);
 		Task.tryStartTask(particleTask);
+		Task.tryStartTask(roundTimer);
 
 		started = true;
 		sendBeginEvent();
@@ -371,7 +452,9 @@ public class ChickenOut extends MapGame implements Listener {
 		}
 
 		Task.tryStopTask(monitorTask);
-		Task.tryStartTask(particleTask);
+		Task.tryStopTask(particleTask);
+		Task.tryStopTask(roundTimer);
+		Task.tryStopTask(finalTimer);
 
 		ended = true;
 	}
