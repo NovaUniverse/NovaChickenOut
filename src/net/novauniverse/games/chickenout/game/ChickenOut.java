@@ -121,11 +121,9 @@ public class ChickenOut extends MapGame implements Listener {
 					}
 				} else {
 					Task.tryStopTask(finalTimer);
-					Bukkit.getServer().getOnlinePlayers().forEach(player -> {
-						if (players.contains(player.getUniqueId())) {
-							player.setGameMode(GameMode.SPECTATOR);
-							player.getWorld().strikeLightning(player.getLocation());
-						}
+					Bukkit.getServer().getOnlinePlayers().stream().filter(player -> players.contains(player.getUniqueId())).forEach(player -> {
+						player.setGameMode(GameMode.SPECTATOR);
+						player.getWorld().strikeLightning(player.getLocation());
 					});
 					endGame(GameEndReason.TIME);
 				}
