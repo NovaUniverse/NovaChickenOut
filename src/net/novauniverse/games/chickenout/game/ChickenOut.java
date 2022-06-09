@@ -39,6 +39,7 @@ import net.zeeraa.novacore.commons.tasks.Task;
 import net.zeeraa.novacore.commons.utils.TextUtils;
 import net.zeeraa.novacore.spigot.NovaCore;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
+import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentMetarial;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentSound;
 import net.zeeraa.novacore.spigot.abstraction.events.VersionIndependentPlayerPickUpItemEvent;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.GameEndReason;
@@ -357,6 +358,8 @@ public class ChickenOut extends MapGame implements Listener {
 		player.setFoodLevel(20);
 		player.setGameMode(GameMode.SURVIVAL);
 		player.teleport(location);
+		
+		player.getInventory().addItem(VersionIndependentMetarial.WOODEN_SWORD.toItemStack());
 
 		new BukkitRunnable() {
 			@Override
