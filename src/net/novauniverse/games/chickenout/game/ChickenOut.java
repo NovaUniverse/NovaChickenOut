@@ -22,6 +22,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -358,7 +359,7 @@ public class ChickenOut extends MapGame implements Listener {
 		player.setFoodLevel(20);
 		player.setGameMode(GameMode.SURVIVAL);
 		player.teleport(location);
-		
+
 		player.getInventory().addItem(VersionIndependentMetarial.WOODEN_SWORD.toItemStack());
 
 		new BukkitRunnable() {
@@ -461,6 +462,13 @@ public class ChickenOut extends MapGame implements Listener {
 		Task.tryStopTask(finalTimer);
 
 		ended = true;
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onDeath(EntityDeathEvent e) {
+		if (wrappedMobs.stream().anyMatch(w -> w.getEntity().getUniqueId().toString().equalsIgnoreCase(e.getEntity().getUniqueId().toString()))) {
+			e.getDrops().clear();
+		}
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
