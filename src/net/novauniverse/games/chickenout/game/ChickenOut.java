@@ -217,12 +217,13 @@ public class ChickenOut extends MapGame implements Listener {
 						location.add(0, 5, 0);
 
 						int count = 1;
+						int r = getRandom().nextInt(100);
 						Color color = Color.WHITE;
-						if (getRandom().nextInt(100) < CHANCE_5_FEATHERS) {
+						if (r < CHANCE_5_FEATHERS) {
 							count = 5;
 							color = Color.GREEN;
 						}
-						if (getRandom().nextInt(100) < CHANCE_10_FEATHERS) {
+						if (r < CHANCE_10_FEATHERS) {
 							count = 10;
 							color = Color.RED;
 						}
