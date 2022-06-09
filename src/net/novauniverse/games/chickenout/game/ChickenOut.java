@@ -140,7 +140,6 @@ public class ChickenOut extends MapGame implements Listener {
 				} else {
 					roundTimeLeft = config.getLevelTime();
 					level++;
-					// TODO: Level up message
 					Bukkit.getServer().broadcastMessage(ChatColor.RED + "Monsters will now spawn at level " + level);
 					if (level >= config.getMaxLevel()) {
 						Task.tryStopTask(roundTimer);
