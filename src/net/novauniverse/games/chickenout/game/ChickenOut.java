@@ -147,6 +147,10 @@ public class ChickenOut extends MapGame implements Listener {
 						Task.tryStartTask(finalTimer);
 					}
 				}
+
+				// Handle mob removal time
+				wrappedMobs.stream().filter(w -> w.getLevel() != level).forEach(w -> w.decrementRemovalTimer());
+				wrappedMobs.stream().filter(w -> w.getTimeUntilRemoval() <= 0).forEach(w -> w.getEntity().remove());
 			}
 		}, 20L);
 
