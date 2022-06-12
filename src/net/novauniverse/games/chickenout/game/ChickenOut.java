@@ -11,18 +11,23 @@ import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.FireworkEffect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Creature;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Firework;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -52,6 +57,7 @@ import net.zeeraa.novacore.spigot.teams.TeamManager;
 import net.zeeraa.novacore.spigot.utils.ItemBuilder;
 import net.zeeraa.novacore.spigot.utils.LocationUtils;
 import net.zeeraa.novacore.spigot.utils.PlayerUtils;
+import net.zeeraa.novacore.spigot.utils.RandomFireworkEffect;
 import net.zeeraa.novacore.spigot.utils.VectorArea;
 
 public class ChickenOut extends MapGame implements Listener {
@@ -169,6 +175,13 @@ public class ChickenOut extends MapGame implements Listener {
 
 					Bukkit.getServer().broadcastMessage(color + "" + ChatColor.BOLD + player.getName() + ChatColor.GOLD + ChatColor.BOLD + " chickened out");
 					player.setGameMode(GameMode.SPECTATOR);
+					tpToSpectator(player);
+					VersionIndependentSound.WITHER_HURT.play(player);
+					Firework firework = (Firework) world.spawnEntity(config.getChickenOutAreaCenter(), EntityType.FIREWORK);
+					FireworkMeta meta = firework.getFireworkMeta();
+					meta.setPower(1);
+					meta.addEffect(FireworkEffect.builder().with(FireworkEffect.Type.BALL_LARGE).withColor(org.bukkit.Color.WHITE).build());
+					firework.setFireworkMeta(meta);
 					players.remove(player.getUniqueId());
 
 					// eliminatePlayer(player, null, PlayerEliminationReason.OTHER);
@@ -200,16 +213,27 @@ public class ChickenOut extends MapGame implements Listener {
 		monitorTask = new SimpleTask(plugin, new Runnable() {
 			@Override
 			public void run() {
+				// Compass target
+				Bukkit.getServer().getOnlinePlayers().stream().filter(p -> p.getWorld() == getWorld()).forEach(player -> player.setCompassTarget(config.getChickenOutAreaCenter()));
+
+				// Remove dead entity wrappers
 				wrappedFeathers.removeIf(w -> w.getItem().isDead());
 				wrappedMobs.removeIf(w -> w.getEntity().isDead());
+
+				// Player food
 				Bukkit.getServer().getOnlinePlayers().forEach(player -> {
 					player.setSaturation(0);
 					player.setFoodLevel(20);
 				});
+
+				// Update targets
 				wrappedMobs.forEach(wm -> wm.updateMobTarget());
+
+				// Spawn feathers and mobs
 				spawnFeathers();
 				spawnMobs();
 
+				// End game
 				if (!hasEnded()) {
 					if (players.size() == 0) {
 						endGame(GameEndReason.ALL_FINISHED);
@@ -535,6 +559,28 @@ public class ChickenOut extends MapGame implements Listener {
 		Task.tryStopTask(finalTimer);
 		Task.tryStopTask(chickenOutTask);
 
+		getActiveMap().getStarterLocations().forEach(location -> {
+			Firework fw = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK);
+			FireworkMeta fwm = fw.getFireworkMeta();
+
+			fwm.setPower(2);
+			fwm.addEffect(RandomFireworkEffect.randomFireworkEffect());
+
+			if (random.nextBoolean()) {
+				fwm.addEffect(RandomFireworkEffect.randomFireworkEffect());
+			}
+
+			fw.setFireworkMeta(fwm);
+		});
+
+		Bukkit.getServer().getOnlinePlayers().forEach(player -> {
+			VersionIndependentUtils.get().resetEntityMaxHealth(player);
+			player.setFoodLevel(20);
+			PlayerUtils.clearPlayerInventory(player);
+			PlayerUtils.resetPlayerXP(player);
+			player.setGameMode(GameMode.SPECTATOR);
+		});
+
 		ended = true;
 	}
 
@@ -542,6 +588,19 @@ public class ChickenOut extends MapGame implements Listener {
 	public void onDeath(EntityDeathEvent e) {
 		if (wrappedMobs.stream().anyMatch(w -> w.getEntity().getUniqueId().toString().equalsIgnoreCase(e.getEntity().getUniqueId().toString()))) {
 			e.getDrops().clear();
+		}
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void onEntityDamage(EntityDamageEvent e) {
+		if (e.getEntity() instanceof Player) {
+			if (hasActiveMap()) {
+				if (started) {
+					if (config.getChickenOutArea().isInside(e.getEntity().getLocation().toVector())) {
+						e.setCancelled(true);
+					}
+				}
+			}
 		}
 	}
 
