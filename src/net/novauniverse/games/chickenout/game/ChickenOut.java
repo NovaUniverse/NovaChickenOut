@@ -456,7 +456,9 @@ public class ChickenOut extends MapGame implements Listener {
 		player.setGameMode(GameMode.SURVIVAL);
 		player.teleport(location);
 
-		player.getInventory().addItem(VersionIndependentMaterial.WOODEN_SWORD.toItemStack());
+		ItemBuilder swordBuilder = new ItemBuilder(VersionIndependentMaterial.WOODEN_SWORD);
+		swordBuilder.setUnbreakable(true);
+		player.getInventory().addItem(swordBuilder.build());
 
 		new BukkitRunnable() {
 			@Override
