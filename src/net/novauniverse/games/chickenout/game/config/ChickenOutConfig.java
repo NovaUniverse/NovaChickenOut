@@ -12,6 +12,8 @@ import net.zeeraa.novacore.spigot.utils.VectorArea;
 public class ChickenOutConfig extends MapModule {
 	private List<VectorArea> mobSpawnAreas;
 	private List<VectorArea> featherSpawnAreas;
+	
+	private VectorArea chickenOutArea;
 
 	private int targetFeatherCount;
 	private int targetMobCount;
@@ -35,6 +37,8 @@ public class ChickenOutConfig extends MapModule {
 		for (int i = 0; i < mobAreasJSON.length(); i++) {
 			featherSpawnAreas.add(VectorArea.fromJSON(featherAreasJSON.getJSONObject(i)));
 		}
+		
+		chickenOutArea = VectorArea.fromJSON(json.getJSONObject("chicken_out_area"));
 
 		targetFeatherCount = json.getInt("target_feather_count");
 		targetMobCount = json.getInt("target_mob_count");
@@ -53,6 +57,10 @@ public class ChickenOutConfig extends MapModule {
 		return featherSpawnAreas;
 	}
 
+	public VectorArea getChickenOutArea() {
+		return chickenOutArea;
+	}
+	
 	public int getTargetFeatherCount() {
 		return targetFeatherCount;
 	}

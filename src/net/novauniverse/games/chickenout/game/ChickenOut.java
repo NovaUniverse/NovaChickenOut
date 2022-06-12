@@ -40,7 +40,7 @@ import net.zeeraa.novacore.commons.tasks.Task;
 import net.zeeraa.novacore.commons.utils.TextUtils;
 import net.zeeraa.novacore.spigot.NovaCore;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
-import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentMetarial;
+import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentMaterial;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentSound;
 import net.zeeraa.novacore.spigot.abstraction.events.VersionIndependentPlayerPickUpItemEvent;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.GameEndReason;
@@ -68,6 +68,9 @@ public class ChickenOut extends MapGame implements Listener {
 
 	private static final double MOB_PLAYER_SPAWN_RADIUS = 10;
 
+	private Map<Team, Integer> teamFinalScore;
+	private Map<UUID, Integer> playerFinalScore;
+
 	private int roundTimeLeft;
 	private int finalTimeLeft;
 
@@ -77,6 +80,7 @@ public class ChickenOut extends MapGame implements Listener {
 	private Task particleTask;
 	private Task roundTimer;
 	private Task finalTimer;
+	private Task chickenOutTask;
 
 	private Map<UUID, Integer> feathers;
 
@@ -87,17 +91,20 @@ public class ChickenOut extends MapGame implements Listener {
 
 		started = false;
 		ended = false;
-		teamSpawnLocations = new HashMap<>();
+		teamSpawnLocations = new HashMap<Team, Location>();
 
 		roundTimeLeft = 0;
 		finalTimeLeft = 0;
 
 		config = null;
 
-		wrappedFeathers = new ArrayList<>();
-		wrappedMobs = new ArrayList<>();
+		wrappedFeathers = new ArrayList<WrappedChickenOutFeather>();
+		wrappedMobs = new ArrayList<WrappedChickenOutMob>();
 
 		feathers = new HashMap<UUID, Integer>();
+
+		teamFinalScore = new HashMap<Team, Integer>();
+		playerFinalScore = new HashMap<UUID, Integer>();
 
 		level = 1;
 
@@ -131,6 +138,43 @@ public class ChickenOut extends MapGame implements Listener {
 				}
 			}
 		}, 20L);
+
+		chickenOutTask = new SimpleTask(plugin, new Runnable() {
+			@Override
+			public void run() {
+				wrappedMobs.stream().filter(m -> config.getChickenOutArea().isInside(m.getEntity().getLocation().toVector())).forEach(m -> m.getEntity().remove());
+				Bukkit.getServer().getOnlinePlayers().stream().filter(player -> players.contains(player.getUniqueId())).filter(player -> config.getChickenOutArea().isInside(player.getLocation().toVector())).forEach(player -> {
+					int score = getPlayerFeathers(player);
+					if (TeamManager.hasTeamManager()) {
+						Team team = TeamManager.getTeamManager().getPlayerTeam(player);
+						if (team != null) {
+							if (teamFinalScore.containsKey(team)) {
+								score += teamFinalScore.get(team);
+							}
+							teamFinalScore.put(team, score);
+						}
+					} else {
+						playerFinalScore.put(player.getUniqueId(), score);
+					}
+
+					feathers.remove(player.getUniqueId());
+
+					net.md_5.bungee.api.ChatColor color = net.md_5.bungee.api.ChatColor.AQUA;
+					if (TeamManager.hasTeamManager()) {
+						Team team = TeamManager.getTeamManager().getPlayerTeam(player);
+						if (team != null) {
+							color = team.getTeamColor();
+						}
+					}
+
+					Bukkit.getServer().broadcastMessage(color + "" + ChatColor.BOLD + player.getName() + ChatColor.GOLD + ChatColor.BOLD + " chickened out");
+					player.setGameMode(GameMode.SPECTATOR);
+					players.remove(player.getUniqueId());
+
+					// eliminatePlayer(player, null, PlayerEliminationReason.OTHER);
+				});
+			}
+		}, 2L);
 
 		roundTimer = new SimpleTask(plugin, new Runnable() {
 			@Override
@@ -200,6 +244,33 @@ public class ChickenOut extends MapGame implements Listener {
 
 	public int getLevel() {
 		return level;
+	}
+
+	public int getFinalPlayerScore(UUID uuid) {
+		if (playerFinalScore.containsKey(uuid)) {
+			return playerFinalScore.get(uuid);
+		}
+		return 0;
+	}
+
+	public int getFinalTeamScore(Team team) {
+		if (teamFinalScore.containsKey(team)) {
+			return teamFinalScore.get(team);
+		}
+		return 0;
+	}
+
+	public int getFinalScoreForDisplay(UUID uuid) {
+		if (TeamManager.hasTeamManager()) {
+			Team team = TeamManager.getTeamManager().getPlayerTeam(uuid);
+			if (team != null) {
+				return getFinalTeamScore(team);
+			}
+		} else {
+			return getFinalPlayerScore(uuid);
+		}
+
+		return 0;
 	}
 
 	public void spawnFeathers() {
@@ -361,7 +432,7 @@ public class ChickenOut extends MapGame implements Listener {
 		player.setGameMode(GameMode.SURVIVAL);
 		player.teleport(location);
 
-		player.getInventory().addItem(VersionIndependentMetarial.WOODEN_SWORD.toItemStack());
+		player.getInventory().addItem(VersionIndependentMaterial.WOODEN_SWORD.toItemStack());
 
 		new BukkitRunnable() {
 			@Override
@@ -446,6 +517,7 @@ public class ChickenOut extends MapGame implements Listener {
 		Task.tryStartTask(monitorTask);
 		Task.tryStartTask(particleTask);
 		Task.tryStartTask(roundTimer);
+		Task.tryStartTask(chickenOutTask);
 
 		started = true;
 		sendBeginEvent();
@@ -461,6 +533,7 @@ public class ChickenOut extends MapGame implements Listener {
 		Task.tryStopTask(particleTask);
 		Task.tryStopTask(roundTimer);
 		Task.tryStopTask(finalTimer);
+		Task.tryStopTask(chickenOutTask);
 
 		ended = true;
 	}
