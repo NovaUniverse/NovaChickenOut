@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -36,6 +37,9 @@ import org.bukkit.util.Vector;
 
 import net.novauniverse.games.chickenout.NovaChickenOut;
 import net.novauniverse.games.chickenout.game.config.ChickenOutConfig;
+import net.novauniverse.games.chickenout.game.event.AbstractChickenOutPlacementEvent;
+import net.novauniverse.games.chickenout.game.event.ChickenOutPlayerPlacementEvent;
+import net.novauniverse.games.chickenout.game.event.ChickenOutTeamPlacementEvent;
 import net.novauniverse.games.chickenout.game.mobs.ChickenOutMobProvider;
 import net.novauniverse.games.chickenout.game.mobs.ChickenOutMobRepo;
 import net.novauniverse.games.chickenout.game.utils.WrappedChickenOutFeather;
@@ -553,6 +557,29 @@ public class ChickenOut extends MapGame implements Listener {
 	public void onEnd(GameEndReason reason) {
 		if (ended) {
 			return;
+		}
+
+		// We use for loops here since we need to index value
+		if (TeamManager.hasTeamManager()) {
+			List<Entry<UUID, Integer>> entries = new ArrayList<>(playerFinalScore.entrySet());
+			entries.sort(Entry.comparingByValue());
+			Collections.reverse(entries);
+
+			for (int i = 0; i < entries.size(); i++) {
+				Entry<UUID, Integer> entry = entries.get(i);
+				AbstractChickenOutPlacementEvent event = new ChickenOutPlayerPlacementEvent(entry.getValue(), i + 1, entry.getKey());
+				Bukkit.getServer().getPluginManager().callEvent(event);
+			}
+		} else {
+			List<Entry<Team, Integer>> entries = new ArrayList<>(teamFinalScore.entrySet());
+			entries.sort(Entry.comparingByValue());
+			Collections.reverse(entries);
+
+			for (int i = 0; i < entries.size(); i++) {
+				Entry<Team, Integer> entry = entries.get(i);
+				AbstractChickenOutPlacementEvent event = new ChickenOutTeamPlacementEvent(entry.getValue(), i + 1, entry.getKey());
+				Bukkit.getServer().getPluginManager().callEvent(event);
+			}
 		}
 
 		Task.tryStopTask(monitorTask);
