@@ -305,7 +305,7 @@ public class ChickenOut extends MapGame implements Listener {
 		if (started) {
 			int toSpawn = config.getTargetFeatherCount() - wrappedFeathers.size();
 			if (toSpawn > 0) {
-				Log.trace(getName(), "Spawing " + toSpawn + " feathers");
+				//Log.trace(getName(), "Spawing " + toSpawn + " feathers");
 				for (int i = 0; i < toSpawn; i++) {
 					VectorArea area = config.getFeatherSpawnAreas().get(getRandom().nextInt(config.getFeatherSpawnAreas().size()));
 					Vector randLoc = area.getRandomVectorWithin(getRandom());
@@ -614,7 +614,7 @@ public class ChickenOut extends MapGame implements Listener {
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
-	public void onDeath(EntityDeathEvent e) {
+	public void onEntityDeath(EntityDeathEvent e) {
 		if (wrappedMobs.stream().anyMatch(w -> w.getEntity().getUniqueId().toString().equalsIgnoreCase(e.getEntity().getUniqueId().toString()))) {
 			e.getDrops().clear();
 		}
@@ -636,7 +636,8 @@ public class ChickenOut extends MapGame implements Listener {
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void onPlayerPickupItem(VersionIndependentPlayerPickUpItemEvent e) {
 		Player player = e.getPlayer();
-		Log.trace("ChickenOut", "Pick up item " + e.getItem().getItemStack().getType().name());
+		// Log.trace("ChickenOut", "Pick up item " +
+		// e.getItem().getItemStack().getType().name());
 		if (e.getItem().getItemStack().getType() == Material.FEATHER) {
 			e.setCancelled(true);
 
