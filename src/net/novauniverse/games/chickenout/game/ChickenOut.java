@@ -85,6 +85,8 @@ public class ChickenOut extends MapGame implements Listener {
 
 	private Map<Team, Integer> teamFinalScore;
 	private Map<UUID, Integer> playerFinalScore;
+	
+	private List<UUID> fullPlayerList;
 
 	private int roundTimeLeft;
 	private int finalTimeLeft;
@@ -121,6 +123,8 @@ public class ChickenOut extends MapGame implements Listener {
 		teamFinalScore = new HashMap<Team, Integer>();
 		playerFinalScore = new HashMap<UUID, Integer>();
 
+		fullPlayerList = new ArrayList<>();
+		
 		level = 1;
 
 		finalTimer = new SimpleTask(plugin, new Runnable() {
@@ -499,6 +503,8 @@ public class ChickenOut extends MapGame implements Listener {
 			return;
 		}
 		this.config = cfg;
+		
+		fullPlayerList = new ArrayList<>(players);
 
 		List<Player> toTeleport = new ArrayList<Player>();
 
@@ -714,5 +720,9 @@ public class ChickenOut extends MapGame implements Listener {
 				e.getItem().remove();
 			}
 		}
+	}
+
+	public List<UUID> getAllParticipatingPlayers() {
+		return fullPlayerList;
 	}
 }
