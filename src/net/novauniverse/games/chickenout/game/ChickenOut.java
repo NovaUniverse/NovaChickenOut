@@ -23,11 +23,13 @@ import org.bukkit.entity.Firework;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
@@ -38,6 +40,7 @@ import org.bukkit.util.Vector;
 import net.novauniverse.games.chickenout.NovaChickenOut;
 import net.novauniverse.games.chickenout.game.config.ChickenOutConfig;
 import net.novauniverse.games.chickenout.game.event.AbstractChickenOutPlacementEvent;
+import net.novauniverse.games.chickenout.game.event.ChickenOutPlayerChickenOutEvent;
 import net.novauniverse.games.chickenout.game.event.ChickenOutPlayerPlacementEvent;
 import net.novauniverse.games.chickenout.game.event.ChickenOutTeamPlacementEvent;
 import net.novauniverse.games.chickenout.game.mobs.ChickenOutMobProvider;
@@ -152,7 +155,12 @@ public class ChickenOut extends MapGame implements Listener {
 		chickenOutTask = new SimpleTask(plugin, new Runnable() {
 			@Override
 			public void run() {
+				// Remove mobs in chicken out area
 				wrappedMobs.stream().filter(m -> config.getChickenOutArea().isInside(m.getEntity().getLocation().toVector())).forEach(m -> m.getEntity().remove());
+
+				// Remove if player is eliminated
+				wrappedMobs.stream().filter(m -> !players.contains(m.getTarget())).forEach(m -> m.getEntity().remove());
+
 				Bukkit.getServer().getOnlinePlayers().stream().filter(player -> players.contains(player.getUniqueId())).filter(player -> config.getChickenOutArea().isInside(player.getLocation().toVector())).forEach(player -> {
 					int score = getPlayerFeathers(player);
 					if (TeamManager.hasTeamManager()) {
@@ -187,6 +195,9 @@ public class ChickenOut extends MapGame implements Listener {
 					meta.addEffect(FireworkEffect.builder().with(FireworkEffect.Type.BALL_LARGE).withColor(org.bukkit.Color.WHITE).build());
 					firework.setFireworkMeta(meta);
 					players.remove(player.getUniqueId());
+
+					Event event = new ChickenOutPlayerChickenOutEvent(player, score);
+					Bukkit.getServer().getPluginManager().callEvent(event);
 
 					// eliminatePlayer(player, null, PlayerEliminationReason.OTHER);
 				});
@@ -305,7 +316,7 @@ public class ChickenOut extends MapGame implements Listener {
 		if (started) {
 			int toSpawn = config.getTargetFeatherCount() - wrappedFeathers.size();
 			if (toSpawn > 0) {
-				//Log.trace(getName(), "Spawing " + toSpawn + " feathers");
+				// Log.trace(getName(), "Spawing " + toSpawn + " feathers");
 				for (int i = 0; i < toSpawn; i++) {
 					VectorArea area = config.getFeatherSpawnAreas().get(getRandom().nextInt(config.getFeatherSpawnAreas().size()));
 					Vector randLoc = area.getRandomVectorWithin(getRandom());
@@ -611,6 +622,20 @@ public class ChickenOut extends MapGame implements Listener {
 		});
 
 		ended = true;
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL)
+	public void onEntityDeath(PlayerRespawnEvent e) {
+		if (hasStarted()) {
+			if (!players.contains(e.getPlayer().getUniqueId())) {
+				new BukkitRunnable() {
+					@Override
+					public void run() {
+						tpToSpectator(e.getPlayer());
+					}
+				}.runTaskLater(getPlugin(), 2L);
+			}
+		}
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL)
