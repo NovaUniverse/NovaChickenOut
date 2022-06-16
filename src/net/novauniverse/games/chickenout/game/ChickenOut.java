@@ -606,6 +606,12 @@ public class ChickenOut extends MapGame implements Listener {
 				list = new ArrayList<>(playerFinalScore.entrySet());
 			}
 
+			// No placement if you dont get any score
+			list.removeIf(e -> e.getValue() == 0);
+
+			list.sort(Entry.comparingByValue());
+			Collections.reverse(list);
+
 			int maxEntries = 5;
 			int max = (list.size() > maxEntries) ? maxEntries : list.size();
 			Bukkit.getServer().broadcastMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "-- Top " + max + (TeamManager.hasTeamManager() ? " teams" : " players") + " --");
