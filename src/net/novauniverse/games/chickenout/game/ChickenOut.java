@@ -691,6 +691,7 @@ public class ChickenOut extends MapGame implements Listener {
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onEntityDeath(EntityDeathEvent e) {
 		if (wrappedMobs.stream().anyMatch(w -> w.getEntity().getUniqueId().toString().equalsIgnoreCase(e.getEntity().getUniqueId().toString()))) {
+			e.setDroppedExp(0);
 			e.getDrops().clear();
 		}
 	}
