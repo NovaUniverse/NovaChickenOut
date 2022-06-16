@@ -620,7 +620,7 @@ public class ChickenOut extends MapGame implements Listener {
 					OfflinePlayer player = Bukkit.getServer().getOfflinePlayer(entry.getKey());
 					name = player.getName();
 				}
-				Bukkit.getServer().broadcastMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + TextUtils.ordinal(i + 1) + " place: " + color + ChatColor.BOLD + name + ChatColor.AQUA + ChatColor.BOLD + " with " + entry.getValue() + " points");
+				Bukkit.getServer().broadcastMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + TextUtils.ordinal(i + 1) + " place: " + color + ChatColor.BOLD + name + ChatColor.AQUA + ChatColor.BOLD + " with " + entry.getValue() + " feathers collected");
 			}
 		} catch (Exception e) {
 			Bukkit.getServer().broadcastMessage(org.bukkit.ChatColor.DARK_RED + "An error occured while displaying the top list. Dont worry, your score will still be applied correctly");
