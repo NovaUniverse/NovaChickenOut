@@ -11,11 +11,11 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.FireworkEffect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.EntityType;
@@ -37,6 +37,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
+import net.md_5.bungee.api.ChatColor;
 import net.novauniverse.games.chickenout.NovaChickenOut;
 import net.novauniverse.games.chickenout.game.config.ChickenOutConfig;
 import net.novauniverse.games.chickenout.game.event.AbstractChickenOutPlacementEvent;
@@ -593,6 +594,40 @@ public class ChickenOut extends MapGame implements Listener {
 			}
 		}
 
+		try {
+			List<Entry<UUID, Integer>> list;
+			if (TeamManager.hasTeamManager()) {
+				list = new ArrayList<>();
+				teamFinalScore.forEach((team, score) -> {
+					list.add(new TeamScoreEntry(team.getTeamUuid(), score));
+				});
+			} else {
+				list = new ArrayList<>(playerFinalScore.entrySet());
+			}
+
+			int maxEntries = 5;
+			int max = (list.size() > maxEntries) ? maxEntries : list.size();
+			Bukkit.getServer().broadcastMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "-- Top " + max + (TeamManager.hasTeamManager() ? " teams" : " players") + " --");
+			for (int i = 0; i < max; i++) {
+				Entry<UUID, Integer> entry = list.get(i);
+				String name = "MissingNo";
+				ChatColor color = ChatColor.AQUA;
+				if (TeamManager.hasTeamManager()) {
+					Team team = TeamManager.getTeamManager().getTeamByTeamUUID(entry.getKey());
+					name = team.getDisplayName();
+					color = team.getTeamColor();
+				} else {
+					OfflinePlayer player = Bukkit.getServer().getOfflinePlayer(entry.getKey());
+					name = player.getName();
+				}
+				Bukkit.getServer().broadcastMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + TextUtils.ordinal(i + 1) + " place: " + color + ChatColor.BOLD + name + ChatColor.AQUA + ChatColor.BOLD + " with " + entry.getValue() + " points");
+			}
+		} catch (Exception e) {
+			Bukkit.getServer().broadcastMessage(org.bukkit.ChatColor.DARK_RED + "An error occured while displaying the top list. Dont worry, your score will still be applied correctly");
+			Log.error("ChickenOut", "Failed to display final score. " + e.getClass().getName() + " " + e.getMessage());
+			e.printStackTrace();
+		}
+
 		Task.tryStopTask(monitorTask);
 		Task.tryStopTask(particleTask);
 		Task.tryStopTask(roundTimer);
@@ -673,4 +708,30 @@ public class ChickenOut extends MapGame implements Listener {
 			}
 		}
 	}
+}
+
+class TeamScoreEntry implements Entry<UUID, Integer> {
+	private UUID teamUuid;
+	private Integer score;
+
+	public TeamScoreEntry(UUID teamUuid, Integer score) {
+		this.teamUuid = teamUuid;
+		this.score = score;
+	}
+
+	@Override
+	public UUID getKey() {
+		return teamUuid;
+	}
+
+	@Override
+	public Integer getValue() {
+		return score;
+	}
+
+	@Override
+	public Integer setValue(Integer value) {
+		return score;
+	}
+
 }
