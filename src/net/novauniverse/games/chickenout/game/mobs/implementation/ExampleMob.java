@@ -21,17 +21,15 @@ public class ExampleMob implements ChickenOutMobProvider {
 	@Override
 	public Creature spawn(Location location, Player player) {
 		Creature creature = (Creature) location.getWorld().spawnEntity(location, EntityType.ZOMBIE);
+
+		// sometimes the zombies spawn with items and we don't want that
+		creature.getEquipment().clear();
+
 		// [LVL 1] gets added by the plugin later
 		creature.setCustomName("Zombie");
 		creature.setCustomNameVisible(true);
 		((Ageable) creature).setAdult();
-		creature.getEquipment().setHelmet(new ItemBuilder(Material.LEATHER_HELMET).setAmount(1).build());
-
-		// sometimes the zombies spawn with items and we don't want that
-		creature.getEquipment().setItemInHand(ItemBuilder.AIR);
-		creature.getEquipment().setChestplate(ItemBuilder.AIR);
-		creature.getEquipment().setLeggings(ItemBuilder.AIR);
-		creature.getEquipment().setBoots(ItemBuilder.AIR);
+		creature.getEquipment().setHelmet(new ItemBuilder(Material.LEATHER_HELMET).setAmount(1).setUnbreakable(true).build());
 
 		return creature;
 	}
