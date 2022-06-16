@@ -46,6 +46,7 @@ import net.novauniverse.games.chickenout.game.event.ChickenOutPlayerPlacementEve
 import net.novauniverse.games.chickenout.game.event.ChickenOutTeamPlacementEvent;
 import net.novauniverse.games.chickenout.game.mobs.ChickenOutMobProvider;
 import net.novauniverse.games.chickenout.game.mobs.ChickenOutMobRepo;
+import net.novauniverse.games.chickenout.game.utils.TeamScoreEntry;
 import net.novauniverse.games.chickenout.game.utils.WrappedChickenOutFeather;
 import net.novauniverse.games.chickenout.game.utils.WrappedChickenOutMob;
 import net.zeeraa.novacore.commons.log.Log;
@@ -708,30 +709,4 @@ public class ChickenOut extends MapGame implements Listener {
 			}
 		}
 	}
-}
-
-class TeamScoreEntry implements Entry<UUID, Integer> {
-	private UUID teamUuid;
-	private Integer score;
-
-	public TeamScoreEntry(UUID teamUuid, Integer score) {
-		this.teamUuid = teamUuid;
-		this.score = score;
-	}
-
-	@Override
-	public UUID getKey() {
-		return teamUuid;
-	}
-
-	@Override
-	public Integer getValue() {
-		return score;
-	}
-
-	@Override
-	public Integer setValue(Integer value) {
-		return score;
-	}
-
 }
