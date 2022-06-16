@@ -25,6 +25,7 @@ public class LevelTwoSkeleton implements ChickenOutMobProvider {
         creature.setCustomNameVisible(true);
         creature.getEquipment().setHelmet(new ItemBuilder(Material.LEATHER_HELMET).setAmount(1).setUnbreakable(true).build());
         creature.getEquipment().setChestplate(new ItemBuilder(Material.LEATHER_CHESTPLATE).setAmount(1).setUnbreakable(true).build());
+        creature.getEquipment().setItemInMainHand(new ItemBuilder(Material.BOW).setAmount(1).setUnbreakable(true).build());
         return creature;
     }
 }
