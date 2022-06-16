@@ -580,16 +580,6 @@ public class ChickenOut extends MapGame implements Listener {
 
 		// We use for loops here since we need to index value
 		if (TeamManager.hasTeamManager()) {
-			List<Entry<UUID, Integer>> entries = new ArrayList<>(playerFinalScore.entrySet());
-			entries.sort(Entry.comparingByValue());
-			Collections.reverse(entries);
-
-			for (int i = 0; i < entries.size(); i++) {
-				Entry<UUID, Integer> entry = entries.get(i);
-				AbstractChickenOutPlacementEvent event = new ChickenOutPlayerPlacementEvent(entry.getValue(), i + 1, entry.getKey());
-				Bukkit.getServer().getPluginManager().callEvent(event);
-			}
-		} else {
 			List<Entry<Team, Integer>> entries = new ArrayList<>(teamFinalScore.entrySet());
 			entries.sort(Entry.comparingByValue());
 			Collections.reverse(entries);
@@ -597,6 +587,18 @@ public class ChickenOut extends MapGame implements Listener {
 			for (int i = 0; i < entries.size(); i++) {
 				Entry<Team, Integer> entry = entries.get(i);
 				AbstractChickenOutPlacementEvent event = new ChickenOutTeamPlacementEvent(entry.getValue(), i + 1, entry.getKey());
+				Log.trace("ChickenOut", "Calling ChickenOutTeamPlacementEvent");
+				Bukkit.getServer().getPluginManager().callEvent(event);
+			}
+		} else {
+			List<Entry<UUID, Integer>> entries = new ArrayList<>(playerFinalScore.entrySet());
+			entries.sort(Entry.comparingByValue());
+			Collections.reverse(entries);
+
+			for (int i = 0; i < entries.size(); i++) {
+				Entry<UUID, Integer> entry = entries.get(i);
+				AbstractChickenOutPlacementEvent event = new ChickenOutPlayerPlacementEvent(entry.getValue(), i + 1, entry.getKey());
+				Log.trace("ChickenOut", "Calling ChickenOutPlayerPlacementEvent");
 				Bukkit.getServer().getPluginManager().callEvent(event);
 			}
 		}
