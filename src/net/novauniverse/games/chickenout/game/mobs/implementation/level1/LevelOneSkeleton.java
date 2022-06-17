@@ -1,12 +1,14 @@
 package net.novauniverse.games.chickenout.game.mobs.implementation.level1;
 
 import net.novauniverse.games.chickenout.game.mobs.ChickenOutMobProvider;
+import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.utils.ItemBuilder;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 public class LevelOneSkeleton implements ChickenOutMobProvider {
 
@@ -21,7 +23,8 @@ public class LevelOneSkeleton implements ChickenOutMobProvider {
         creature.getEquipment().clear();
         creature.setCustomName("Skeleton");
         creature.setCustomNameVisible(true);
-        creature.getEquipment().setItemInMainHand(new ItemBuilder(Material.BOW).setUnbreakable(true).setAmount(1).build());
+        ItemStack item = new ItemBuilder(Material.BOW).setUnbreakable(true).setAmount(1).build();
+        VersionIndependentUtils.get().setCreatureItemInMainHand(creature, item);
         return creature;
     }
 }

@@ -7,7 +7,6 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 public class LevelOneSpider implements ChickenOutMobProvider {
-
     @Override
     public int getLevel() {
         return 1;
