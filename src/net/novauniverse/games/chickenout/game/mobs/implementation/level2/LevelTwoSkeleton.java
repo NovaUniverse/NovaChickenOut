@@ -15,6 +15,10 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 public class LevelTwoSkeleton extends MobProviderWithRandomArmor {
+	public LevelTwoSkeleton() {
+		this.setTimesYouCanRandomize(2);
+	}
+	
 	@Override
 	public int getLevel() {
 		return 2;
@@ -30,8 +34,8 @@ public class LevelTwoSkeleton extends MobProviderWithRandomArmor {
 		creature.setCustomName("Skeleton");
 		creature.setCustomNameVisible(true);
 
-		setTimesYouCanRandomize(2);
 		armorRandomizer(creature, ArmorMaterialType.CHAINMAIL);
+		
 		ItemStack item = new ItemBuilder(Material.BOW).setUnbreakable(true).setAmount(1).addEnchant(Enchantment.ARROW_KNOCKBACK, 1).addEnchant(Enchantment.ARROW_DAMAGE, 1).build();
 		VersionIndependentUtils.get().setCreatureItemInMainHand(creature, item);
 
