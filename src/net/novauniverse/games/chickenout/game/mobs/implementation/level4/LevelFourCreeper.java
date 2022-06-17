@@ -24,7 +24,7 @@ public class LevelFourCreeper implements ChickenOutMobProvider {
         creature.setCustomNameVisible(true);
 
 
-        creature.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE,1,false,false,false));
+        creature.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE,1,false,false));
 
         return creature;
     }

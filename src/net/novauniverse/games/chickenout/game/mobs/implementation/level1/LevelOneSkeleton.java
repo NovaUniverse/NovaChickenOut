@@ -11,7 +11,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public class LevelOneSkeleton implements ChickenOutMobProvider {
-
     @Override
     public int getLevel() {
         return 1;
