@@ -41,7 +41,7 @@ public abstract class MobProviderWithRandomArmor implements ChickenOutMobProvide
 						}
 
 						creature.getEquipment().setHelmet(item.build());
-						hasBoots = true;
+						hasHelmet = true;
 					}
 				} else if (random == 2) {
 					if (!hasChestplate) {
