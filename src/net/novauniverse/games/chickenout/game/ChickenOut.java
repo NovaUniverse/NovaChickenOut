@@ -81,7 +81,7 @@ public class ChickenOut extends MapGame implements Listener {
 	private static final int CHANCE_5_FEATHERS = 5;
 	private static final int CHANCE_10_FEATHERS = 1;
 
-	private static final double MOB_PLAYER_SPAWN_RADIUS = 10;
+	private static final double MOB_PLAYER_SPAWN_RADIUS = 16;
 
 	private Map<Team, Integer> teamFinalScore;
 	private Map<UUID, Integer> playerFinalScore;
