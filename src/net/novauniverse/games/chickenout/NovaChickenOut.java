@@ -24,7 +24,6 @@ import net.zeeraa.novacore.spigot.gameengine.module.modules.game.map.mapmodule.M
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.mapselector.selectors.guivoteselector.GUIMapVote;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.gamelobby.GameLobby;
 import net.zeeraa.novacore.spigot.module.ModuleManager;
-import net.zeeraa.novacore.spigot.module.modules.compass.CompassTracker;
 
 public class NovaChickenOut extends JavaPlugin implements Listener {
 	private static NovaChickenOut instance;
@@ -91,11 +90,8 @@ public class NovaChickenOut extends JavaPlugin implements Listener {
 		// Enable required modules
 		ModuleManager.enable(GameManager.class);
 		ModuleManager.enable(GameLobby.class);
-		ModuleManager.enable(CompassTracker.class);
 
 		MapModuleManager.addMapModule("chickenout.config", ChickenOutConfig.class);
-
-		CompassTracker.getInstance().setStrictMode(true);
 
 		// Init game and maps
 		this.game = new ChickenOut(this);

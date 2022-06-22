@@ -60,6 +60,8 @@ import net.zeeraa.novacore.spigot.abstraction.events.VersionIndependentPlayerPic
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.GameEndReason;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.MapGame;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.elimination.PlayerQuitEliminationAction;
+import net.zeeraa.novacore.spigot.module.ModuleManager;
+import net.zeeraa.novacore.spigot.module.modules.compass.CompassTracker;
 import net.zeeraa.novacore.spigot.tasks.SimpleTask;
 import net.zeeraa.novacore.spigot.teams.Team;
 import net.zeeraa.novacore.spigot.teams.TeamManager;
@@ -85,7 +87,7 @@ public class ChickenOut extends MapGame implements Listener {
 
 	private Map<Team, Integer> teamFinalScore;
 	private Map<UUID, Integer> playerFinalScore;
-	
+
 	private List<UUID> fullPlayerList;
 
 	private int roundTimeLeft;
@@ -124,7 +126,7 @@ public class ChickenOut extends MapGame implements Listener {
 		playerFinalScore = new HashMap<UUID, Integer>();
 
 		fullPlayerList = new ArrayList<>();
-		
+
 		level = 1;
 
 		finalTimer = new SimpleTask(plugin, new Runnable() {
@@ -154,6 +156,10 @@ public class ChickenOut extends MapGame implements Listener {
 						player.getWorld().strikeLightning(player.getLocation());
 					});
 					endGame(GameEndReason.TIME);
+				}
+
+				if (hasActiveMap()) {
+					Bukkit.getServer().getOnlinePlayers().forEach(player -> player.setCompassTarget(config.getChickenOutAreaCenter()));
 				}
 			}
 		}, 20L);
@@ -357,7 +363,7 @@ public class ChickenOut extends MapGame implements Listener {
 			if (isPlayerInGame(player)) {
 				int existing = wrappedMobs.stream().filter(mob -> mob.getTarget().toString().equalsIgnoreCase(player.getUniqueId().toString())).toArray().length;
 				int toSpawn = config.getTargetMobCount() - existing;
-				if(toSpawn > 0) {
+				if (toSpawn > 0) {
 					List<ChickenOutMobProvider> providers = ChickenOutMobRepo.getProviders().stream().filter(mob -> mob.getLevel() == level).collect(Collectors.toList());
 					if (providers.size() == 0) {
 						Log.warn("ChickenOut", "No mob providers for level " + level + " was found");
@@ -379,7 +385,7 @@ public class ChickenOut extends MapGame implements Listener {
 					creature.setCustomName("[LVL " + provider.getLevel() + "] " + creature.getCustomName());
 					WrappedChickenOutMob wrappedMob = new WrappedChickenOutMob(creature, player.getUniqueId(), provider.getLevel());
 					wrappedMob.updateMobTarget();
-					wrappedMobs.add(wrappedMob);	
+					wrappedMobs.add(wrappedMob);
 				}
 			}
 		});
@@ -495,6 +501,8 @@ public class ChickenOut extends MapGame implements Listener {
 			return;
 		}
 
+		ModuleManager.disable(CompassTracker.class);
+
 		ChickenOutConfig cfg = (ChickenOutConfig) this.getActiveMap().getMapData().getMapModule(ChickenOutConfig.class);
 		if (cfg == null) {
 			Log.fatal("ChickenOut", "The map " + this.getActiveMap().getMapData().getMapName() + " has no ChickenOut config map module");
@@ -503,7 +511,7 @@ public class ChickenOut extends MapGame implements Listener {
 			return;
 		}
 		this.config = cfg;
-		
+
 		fullPlayerList = new ArrayList<>(players);
 
 		List<Player> toTeleport = new ArrayList<Player>();
@@ -557,6 +565,8 @@ public class ChickenOut extends MapGame implements Listener {
 
 			tpToArena(player, location);
 		}
+
+		Bukkit.getServer().getOnlinePlayers().forEach(player -> player.getInventory().addItem(new ItemBuilder(Material.COMPASS).setName(ChatColor.GOLD + "Stash feathers").build()));
 
 		spawnFeathers();
 
