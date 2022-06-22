@@ -50,7 +50,7 @@ public abstract class MobProviderWithRandomArmor implements ChickenOutMobProvide
 						if (!(enchantments.isEmpty() || enchantments == null))
 							enchantments.forEach((enchant -> item.addEnchant(enchant.getEnchantment(), enchant.getLevel(), false)));
 
-						creature.getEquipment().setHelmet(item.build());
+						creature.getEquipment().setChestplate(item.build());
 						hasChestplate = true;
 
 					}
@@ -62,7 +62,7 @@ public abstract class MobProviderWithRandomArmor implements ChickenOutMobProvide
 							enchantments.forEach((enchant -> item.addEnchant(enchant.getEnchantment(), enchant.getLevel(), false)));
 						}
 
-						creature.getEquipment().setHelmet(item.build());
+						creature.getEquipment().setLeggings(item.build());
 						hasLeggings = true;
 
 					}
@@ -74,7 +74,7 @@ public abstract class MobProviderWithRandomArmor implements ChickenOutMobProvide
 							enchantments.forEach((enchant -> item.addEnchant(enchant.getEnchantment(), enchant.getLevel(), false)));
 						}
 
-						creature.getEquipment().setHelmet(item.build());
+						creature.getEquipment().setBoots(item.build());
 						hasBoots = true;
 					}
 				}
