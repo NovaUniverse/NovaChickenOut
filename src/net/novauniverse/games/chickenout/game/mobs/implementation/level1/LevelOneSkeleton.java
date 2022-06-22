@@ -24,6 +24,7 @@ public class LevelOneSkeleton implements ChickenOutMobProvider {
         creature.setCustomNameVisible(true);
         ItemStack item = new ItemBuilder(Material.BOW).setUnbreakable(true).setAmount(1).build();
         VersionIndependentUtils.get().setCreatureItemInMainHand(creature, item);
+        creature.getEquipment().setHelmet(new ItemBuilder(Material.LEATHER_HELMET).setAmount(1).setUnbreakable(true).build());
         return creature;
     }
 }
