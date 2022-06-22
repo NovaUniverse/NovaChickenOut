@@ -7,6 +7,7 @@ import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentMaterial;
 import net.zeeraa.novacore.spigot.utils.ItemBuilder;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Ageable;
 import org.bukkit.entity.Creature;
@@ -36,6 +37,7 @@ public class LevelFourZombie extends MobProviderWithRandomArmor {
 		ArrayList<Enchant> enchants = new ArrayList<>();
 		enchants.add(new Enchant(Enchantment.PROTECTION_ENVIRONMENTAL, 1));
 
+		creature.getEquipment().setHelmet(new ItemBuilder(Material.LEATHER_HELMET).setAmount(1).setUnbreakable(true).build());
 		setTimesYouCanRandomize(4);
 		armorRandomizer(creature, ArmorMaterialType.IRON, enchants);
 		ItemStack item = new ItemBuilder(VersionIndependentMaterial.GOLDEN_SWORD).setUnbreakable(true).setAmount(1).addEnchant(Enchantment.FIRE_ASPECT, 1).addEnchant(Enchantment.DAMAGE_ALL, 1).build();

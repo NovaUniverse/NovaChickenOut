@@ -30,6 +30,7 @@ public class LevelThreeZombie extends MobProviderWithRandomArmor {
 		creature.setCustomNameVisible(true);
 		((Ageable) creature).setAdult();
 
+		creature.getEquipment().setHelmet(new ItemBuilder(Material.LEATHER_HELMET).setAmount(1).setUnbreakable(true).build());
 		setTimesYouCanRandomize(3);
 		armorRandomizer(creature, ArmorMaterialType.IRON);
 		ItemStack item = new ItemBuilder(Material.STONE_SWORD).setUnbreakable(true).setAmount(1).build();

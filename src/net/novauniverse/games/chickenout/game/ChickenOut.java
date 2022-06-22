@@ -357,11 +357,11 @@ public class ChickenOut extends MapGame implements Listener {
 			if (isPlayerInGame(player)) {
 				int existing = wrappedMobs.stream().filter(mob -> mob.getTarget().toString().equalsIgnoreCase(player.getUniqueId().toString())).toArray().length;
 				int toSpawn = config.getTargetMobCount() - existing;
-				for (int i = 0; i < toSpawn; i++) {
+				if(toSpawn > 0) {
 					List<ChickenOutMobProvider> providers = ChickenOutMobRepo.getProviders().stream().filter(mob -> mob.getLevel() == level).collect(Collectors.toList());
 					if (providers.size() == 0) {
 						Log.warn("ChickenOut", "No mob providers for level " + level + " was found");
-						break;
+						return;
 					}
 
 					Location originPoint = player.getLocation();
@@ -379,7 +379,7 @@ public class ChickenOut extends MapGame implements Listener {
 					creature.setCustomName("[LVL " + provider.getLevel() + "] " + creature.getCustomName());
 					WrappedChickenOutMob wrappedMob = new WrappedChickenOutMob(creature, player.getUniqueId(), provider.getLevel());
 					wrappedMob.updateMobTarget();
-					wrappedMobs.add(wrappedMob);
+					wrappedMobs.add(wrappedMob);	
 				}
 			}
 		});

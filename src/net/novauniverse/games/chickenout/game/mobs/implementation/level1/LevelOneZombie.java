@@ -1,7 +1,10 @@
 package net.novauniverse.games.chickenout.game.mobs.implementation.level1;
 
 import net.novauniverse.games.chickenout.game.mobs.ChickenOutMobProvider;
+import net.zeeraa.novacore.spigot.utils.ItemBuilder;
+
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Ageable;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.EntityType;
@@ -20,6 +23,7 @@ public class LevelOneZombie implements ChickenOutMobProvider {
         creature.setCustomName("Zombie");
         creature.setCustomNameVisible(true);
         ((Ageable) creature).setAdult();
+        creature.getEquipment().setHelmet(new ItemBuilder(Material.LEATHER_HELMET).setAmount(1).setUnbreakable(true).build());
         return creature;
     }
 }

@@ -3,7 +3,10 @@ package net.novauniverse.games.chickenout.game.mobs.implementation.level4;
 import net.novauniverse.games.chickenout.game.mobs.ArmorMaterialType;
 import net.novauniverse.games.chickenout.game.mobs.Enchant;
 import net.novauniverse.games.chickenout.game.mobs.MobProviderWithRandomArmor;
+import net.zeeraa.novacore.spigot.utils.ItemBuilder;
+
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Ageable;
 import org.bukkit.entity.Creature;
@@ -30,6 +33,7 @@ public class LevelFourBabyZombie extends MobProviderWithRandomArmor {
 		ArrayList<Enchant> enchants = new ArrayList<>();
 		enchants.add(new Enchant(Enchantment.PROTECTION_ENVIRONMENTAL, 1));
 
+		creature.getEquipment().setHelmet(new ItemBuilder(Material.LEATHER_HELMET).setAmount(1).setUnbreakable(true).build());
 		setTimesYouCanRandomize(2);
 		armorRandomizer(creature, ArmorMaterialType.IRON, enchants);
 

@@ -34,6 +34,7 @@ public class LevelTwoSkeleton extends MobProviderWithRandomArmor {
 		creature.setCustomName("Skeleton");
 		creature.setCustomNameVisible(true);
 
+		creature.getEquipment().setHelmet(new ItemBuilder(Material.LEATHER_HELMET).setAmount(1).setUnbreakable(true).build());
 		armorRandomizer(creature, ArmorMaterialType.CHAINMAIL);
 		
 		ItemStack item = new ItemBuilder(Material.BOW).setUnbreakable(true).setAmount(1).addEnchant(Enchantment.ARROW_KNOCKBACK, 1).addEnchant(Enchantment.ARROW_DAMAGE, 1).build();

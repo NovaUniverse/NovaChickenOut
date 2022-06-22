@@ -6,6 +6,7 @@ import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentMaterial;
 import net.zeeraa.novacore.spigot.utils.ItemBuilder;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Ageable;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.EntityType;
@@ -31,6 +32,7 @@ public class LevelTwoZombie extends MobProviderWithRandomArmor {
 		((Ageable) creature).setAdult();
 
 		setTimesYouCanRandomize(2);
+		creature.getEquipment().setHelmet(new ItemBuilder(Material.LEATHER_HELMET).setAmount(1).setUnbreakable(true).build());
 		armorRandomizer(creature, ArmorMaterialType.CHAINMAIL);
 		ItemStack item = new ItemBuilder(VersionIndependentMaterial.WOODEN_SWORD).setUnbreakable(true).setAmount(1).build();
 		VersionIndependentUtils.get().setCreatureItemInMainHand(creature, item);
