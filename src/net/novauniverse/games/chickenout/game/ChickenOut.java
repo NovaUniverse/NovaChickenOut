@@ -29,6 +29,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.plugin.Plugin;
@@ -717,6 +718,11 @@ public class ChickenOut extends MapGame implements Listener {
 				}
 			}
 		}
+	}
+	
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void onEntityExplode(EntityExplodeEvent e) {
+		e.setCancelled(true);
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
