@@ -6,17 +6,47 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Player;
 
+import net.zeeraa.novacore.spigot.utils.XYLocation;
+
 public class WrappedChickenOutMob {
+	public static final int STUCK_THRESHOLD = 3;
+
 	private Creature entity;
 	private UUID target;
 	private int level;
 	private int timeUntilRemoval;
+	private int stuckCounter;
+
+	private XYLocation oldChunk;
 
 	public WrappedChickenOutMob(Creature entity, UUID target, int level) {
 		this.entity = entity;
 		this.target = target;
 		this.level = level;
 		this.timeUntilRemoval = 60;
+		this.stuckCounter = 0;
+
+		this.oldChunk = getChunkLocation();
+	}
+
+	private XYLocation getChunkLocation() {
+		return new XYLocation(entity.getLocation().getChunk().getX(), entity.getLocation().getChunk().getZ());
+	}
+
+	public void stuckCheck() {
+		if (entity.isDead()) {
+			return;
+		}
+
+		if (getChunkLocation() == oldChunk) {
+			stuckCounter++;
+			if (stuckCounter >= STUCK_THRESHOLD) {
+				entity.remove();
+			}
+		} else {
+			stuckCounter = 0;
+			oldChunk = getChunkLocation();
+		}
 	}
 
 	public void updateMobTarget() {

@@ -102,6 +102,7 @@ public class ChickenOut extends MapGame implements Listener {
 	private Task particleTask;
 	private Task roundTimer;
 	private Task finalTimer;
+	private Task stuckCheckTimer;
 	private Task chickenOutTask;
 
 	private Map<UUID, Integer> feathers;
@@ -271,6 +272,13 @@ public class ChickenOut extends MapGame implements Listener {
 				}
 			}
 		}, 20L);
+		
+		stuckCheckTimer = new SimpleTask(plugin, new Runnable() {
+			@Override
+			public void run() {
+				wrappedMobs.forEach(mob -> mob.stuckCheck());
+			}
+		}, 200L);
 
 		particleTask = new SimpleTask(plugin, new Runnable() {
 			@Override
@@ -580,7 +588,8 @@ public class ChickenOut extends MapGame implements Listener {
 		Task.tryStartTask(particleTask);
 		Task.tryStartTask(roundTimer);
 		Task.tryStartTask(chickenOutTask);
-
+		Task.tryStartTask(stuckCheckTimer);
+		
 		started = true;
 		sendBeginEvent();
 	}
@@ -661,6 +670,7 @@ public class ChickenOut extends MapGame implements Listener {
 		Task.tryStopTask(roundTimer);
 		Task.tryStopTask(finalTimer);
 		Task.tryStopTask(chickenOutTask);
+		Task.tryStopTask(stuckCheckTimer);
 
 		getActiveMap().getStarterLocations().forEach(location -> {
 			Firework fw = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK);
