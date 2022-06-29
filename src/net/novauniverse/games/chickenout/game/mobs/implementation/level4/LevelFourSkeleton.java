@@ -40,7 +40,7 @@ public class LevelFourSkeleton extends MobProviderWithRandomArmor {
 		ItemStack item = new ItemBuilder(Material.BOW).setUnbreakable(true).setAmount(1).addEnchant(Enchantment.ARROW_FIRE, 1).build();
 		VersionIndependentUtils.get().setCreatureItemInMainHand(creature, item);
 
-		creature.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 1, false, false));
+		creature.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 2, false, false));
 		return creature;
 	}
 }
