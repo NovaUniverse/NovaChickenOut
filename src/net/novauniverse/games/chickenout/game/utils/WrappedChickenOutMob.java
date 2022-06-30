@@ -6,6 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Player;
 
+import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.spigot.utils.XYLocation;
 
 public class WrappedChickenOutMob {
@@ -39,6 +40,7 @@ public class WrappedChickenOutMob {
 		}
 
 		if (getChunkLocation() == oldChunk) {
+			Log.trace("ChickenOut", "Stuck counter increased to " + stuckCounter + " for " + entity.getUniqueId());
 			stuckCounter++;
 			if (stuckCounter >= STUCK_THRESHOLD) {
 				entity.remove();
