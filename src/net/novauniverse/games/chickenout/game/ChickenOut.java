@@ -105,6 +105,8 @@ public class ChickenOut extends MapGame implements Listener {
 	private Task finalTimer;
 	private Task stuckCheckTimer;
 	private Task chickenOutTask;
+	
+	private ChickenOutCountdownType countdownType;
 
 	private List<Callback> timerDecrementCallbacks;
 	
@@ -141,6 +143,7 @@ public class ChickenOut extends MapGame implements Listener {
 		finalTimer = new SimpleTask(plugin, new Runnable() {
 			@Override
 			public void run() {
+				countdownType = ChickenOutCountdownType.FINAL;
 				if (finalTimeLeft > 0) {
 					finalTimeLeft--;
 
@@ -230,6 +233,7 @@ public class ChickenOut extends MapGame implements Listener {
 		roundTimer = new SimpleTask(plugin, new Runnable() {
 			@Override
 			public void run() {
+				countdownType = ChickenOutCountdownType.ROUND;
 				if (roundTimeLeft > 0) {
 					roundTimeLeft--;
 				} else {
@@ -296,6 +300,10 @@ public class ChickenOut extends MapGame implements Listener {
 				wrappedFeathers.forEach(f -> f.showParticles());
 			}
 		}, 5L);
+	}
+	
+	public ChickenOutCountdownType getCountdownType() {
+		return countdownType;
 	}
 
 	public void addtimerDecrementCallback(Callback callback) {
