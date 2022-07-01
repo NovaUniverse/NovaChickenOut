@@ -54,6 +54,7 @@ import net.novauniverse.games.chickenout.game.utils.WrappedChickenOutFeather;
 import net.novauniverse.games.chickenout.game.utils.WrappedChickenOutMob;
 import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.commons.tasks.Task;
+import net.zeeraa.novacore.commons.utils.Callback;
 import net.zeeraa.novacore.commons.utils.TextUtils;
 import net.zeeraa.novacore.spigot.NovaCore;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
@@ -105,6 +106,8 @@ public class ChickenOut extends MapGame implements Listener {
 	private Task stuckCheckTimer;
 	private Task chickenOutTask;
 
+	private List<Callback> timerDecrementCallbacks;
+	
 	private Map<UUID, Integer> feathers;
 
 	private int level;
@@ -124,6 +127,8 @@ public class ChickenOut extends MapGame implements Listener {
 		wrappedFeathers = new ArrayList<WrappedChickenOutFeather>();
 		wrappedMobs = new ArrayList<WrappedChickenOutMob>();
 
+		timerDecrementCallbacks = new ArrayList<>();
+		
 		feathers = new HashMap<UUID, Integer>();
 
 		teamFinalScore = new HashMap<Team, Integer>();
@@ -161,6 +166,8 @@ public class ChickenOut extends MapGame implements Listener {
 					});
 					endGame(GameEndReason.TIME);
 				}
+				
+				timerDecrementCallbacks.forEach(callback -> callback.execute());
 
 				if (hasActiveMap()) {
 					Bukkit.getServer().getOnlinePlayers().forEach(player -> player.setCompassTarget(config.getChickenOutAreaCenter()));
@@ -238,6 +245,9 @@ public class ChickenOut extends MapGame implements Listener {
 				// Handle mob removal time
 				wrappedMobs.stream().filter(w -> w.getLevel() != level).forEach(w -> w.decrementRemovalTimer());
 				wrappedMobs.stream().filter(w -> w.getTimeUntilRemoval() <= 0).forEach(w -> w.getEntity().remove());
+				
+				// Callbacks
+				timerDecrementCallbacks.forEach(callback -> callback.execute());
 			}
 		}, 20L);
 
@@ -288,6 +298,10 @@ public class ChickenOut extends MapGame implements Listener {
 		}, 5L);
 	}
 
+	public void addtimerDecrementCallback(Callback callback) {
+		timerDecrementCallbacks.add(callback);
+	}
+	
 	public int getRoundTimeLeft() {
 		return roundTimeLeft;
 	}
