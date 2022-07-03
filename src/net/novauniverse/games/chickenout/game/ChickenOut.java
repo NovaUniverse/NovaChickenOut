@@ -109,6 +109,7 @@ public class ChickenOut extends MapGame implements Listener {
 	private ChickenOutCountdownType countdownType;
 
 	private List<Callback> timerDecrementCallbacks;
+	private List<Callback> levelChangeCallbacks;
 	
 	private Map<UUID, Integer> feathers;
 
@@ -130,6 +131,7 @@ public class ChickenOut extends MapGame implements Listener {
 		wrappedMobs = new ArrayList<WrappedChickenOutMob>();
 
 		timerDecrementCallbacks = new ArrayList<>();
+		levelChangeCallbacks = new ArrayList<>();
 		
 		feathers = new HashMap<UUID, Integer>();
 
@@ -240,6 +242,7 @@ public class ChickenOut extends MapGame implements Listener {
 					roundTimeLeft = config.getLevelTime();
 					level++;
 					Bukkit.getServer().broadcastMessage(ChatColor.RED + "Monsters will now spawn at level " + level);
+					levelChangeCallbacks.forEach(c -> c.execute());
 					if (level >= config.getMaxLevel()) {
 						Task.tryStopTask(roundTimer);
 						Task.tryStartTask(finalTimer);
@@ -306,8 +309,12 @@ public class ChickenOut extends MapGame implements Listener {
 		return countdownType;
 	}
 
-	public void addtimerDecrementCallback(Callback callback) {
+	public void addTimerDecrementCallback(Callback callback) {
 		timerDecrementCallbacks.add(callback);
+	}
+	
+	public void addLevelChangeCallback(Callback callback) {
+		levelChangeCallbacks.add(callback);
 	}
 	
 	public int getRoundTimeLeft() {
