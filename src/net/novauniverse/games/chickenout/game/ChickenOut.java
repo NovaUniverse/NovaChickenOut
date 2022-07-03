@@ -622,6 +622,10 @@ public class ChickenOut extends MapGame implements Listener {
 		started = true;
 		sendBeginEvent();
 	}
+	
+	public ChickenOutConfig getConfig() {
+		return config;
+	}
 
 	@Override
 	public void onEnd(GameEndReason reason) {
