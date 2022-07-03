@@ -105,12 +105,13 @@ public class ChickenOut extends MapGame implements Listener {
 	private Task finalTimer;
 	private Task stuckCheckTimer;
 	private Task chickenOutTask;
-	
+	private Task speedFixTask;
+
 	private ChickenOutCountdownType countdownType;
 
 	private List<Callback> timerDecrementCallbacks;
 	private List<Callback> levelChangeCallbacks;
-	
+
 	private Map<UUID, Integer> feathers;
 
 	private int level;
@@ -132,7 +133,7 @@ public class ChickenOut extends MapGame implements Listener {
 
 		timerDecrementCallbacks = new ArrayList<>();
 		levelChangeCallbacks = new ArrayList<>();
-		
+
 		feathers = new HashMap<UUID, Integer>();
 
 		teamFinalScore = new HashMap<Team, Integer>();
@@ -171,7 +172,7 @@ public class ChickenOut extends MapGame implements Listener {
 					});
 					endGame(GameEndReason.TIME);
 				}
-				
+
 				timerDecrementCallbacks.forEach(callback -> callback.execute());
 
 				if (hasActiveMap()) {
@@ -232,6 +233,13 @@ public class ChickenOut extends MapGame implements Listener {
 			}
 		}, 2L);
 
+		speedFixTask = new SimpleTask(getPlugin(), new BukkitRunnable() {
+			@Override
+			public void run() {
+				Bukkit.getServer().getOnlinePlayers().stream().filter(player -> player.hasPotionEffect(PotionEffectType.SPEED)).forEach(player -> player.removePotionEffect(PotionEffectType.SPEED));
+			}
+		}, 1L);
+
 		roundTimer = new SimpleTask(plugin, new Runnable() {
 			@Override
 			public void run() {
@@ -252,7 +260,7 @@ public class ChickenOut extends MapGame implements Listener {
 				// Handle mob removal time
 				wrappedMobs.stream().filter(w -> w.getLevel() != level).forEach(w -> w.decrementRemovalTimer());
 				wrappedMobs.stream().filter(w -> w.getTimeUntilRemoval() <= 0).forEach(w -> w.getEntity().remove());
-				
+
 				// Callbacks
 				timerDecrementCallbacks.forEach(callback -> callback.execute());
 			}
@@ -289,7 +297,7 @@ public class ChickenOut extends MapGame implements Listener {
 				}
 			}
 		}, 20L);
-		
+
 		stuckCheckTimer = new SimpleTask(plugin, new Runnable() {
 			@Override
 			public void run() {
@@ -304,7 +312,7 @@ public class ChickenOut extends MapGame implements Listener {
 			}
 		}, 5L);
 	}
-	
+
 	public ChickenOutCountdownType getCountdownType() {
 		return countdownType;
 	}
@@ -312,11 +320,11 @@ public class ChickenOut extends MapGame implements Listener {
 	public void addTimerDecrementCallback(Callback callback) {
 		timerDecrementCallbacks.add(callback);
 	}
-	
+
 	public void addLevelChangeCallback(Callback callback) {
 		levelChangeCallbacks.add(callback);
 	}
-	
+
 	public int getRoundTimeLeft() {
 		return roundTimeLeft;
 	}
@@ -618,11 +626,12 @@ public class ChickenOut extends MapGame implements Listener {
 		Task.tryStartTask(roundTimer);
 		Task.tryStartTask(chickenOutTask);
 		Task.tryStartTask(stuckCheckTimer);
-		
+		Task.tryStartTask(speedFixTask);
+
 		started = true;
 		sendBeginEvent();
 	}
-	
+
 	public ChickenOutConfig getConfig() {
 		return config;
 	}
@@ -704,6 +713,7 @@ public class ChickenOut extends MapGame implements Listener {
 		Task.tryStopTask(finalTimer);
 		Task.tryStopTask(chickenOutTask);
 		Task.tryStopTask(stuckCheckTimer);
+		Task.tryStopTask(speedFixTask);
 
 		getActiveMap().getStarterLocations().forEach(location -> {
 			Firework fw = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK);
