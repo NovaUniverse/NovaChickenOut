@@ -262,6 +262,7 @@ public class ChickenOut extends MapGame implements Listener {
 				} else {
 					roundTimeLeft = config.getLevelTime();
 					level++;
+					Bukkit.getServer().getOnlinePlayers().forEach(player -> VersionIndependentUtils.get().sendTitle(player, ChatColor.RED + "Level " + level, "", 10, 40, 10));
 					Bukkit.getServer().broadcastMessage(ChatColor.RED + "Monsters will now spawn at level " + level);
 					levelChangeCallbacks.forEach(c -> c.execute());
 					if (level >= config.getMaxLevel()) {
