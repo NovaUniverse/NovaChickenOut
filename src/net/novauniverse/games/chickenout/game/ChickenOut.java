@@ -638,7 +638,10 @@ public class ChickenOut extends MapGame implements Listener {
 			tpToArena(player, location);
 		}
 
-		Bukkit.getServer().getWorlds().forEach(world -> VersionIndependentUtils.get().setGameRule(world, "announceAdvancements", "false"));
+		Bukkit.getServer().getWorlds().forEach(world -> {
+			VersionIndependentUtils.get().setGameRule(world, "announceAdvancements", "false");
+			VersionIndependentUtils.get().setGameRule(world, "keepInventory", "true");
+		});
 
 		spawnFeathers();
 
