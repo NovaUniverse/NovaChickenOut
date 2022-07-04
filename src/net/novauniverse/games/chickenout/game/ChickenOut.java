@@ -350,6 +350,7 @@ public class ChickenOut extends MapGame implements Listener {
 
 	public void setLevel(int level) {
 		this.level = level;
+		levelChangeCallbacks.forEach(c -> c.execute());
 	}
 
 	public int getFinalPlayerScore(UUID uuid) {
