@@ -33,6 +33,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.plugin.Plugin;
@@ -109,6 +110,12 @@ public class ChickenOut extends MapGame implements Listener {
 	private Task stuckCheckTimer;
 	private Task chickenOutTask;
 	private Task speedFixTask;
+	private Task actionBarTask;
+
+	private Task beginCountdown;
+
+	private int beginCountdownValue;
+	private boolean countdownOver;
 
 	private ChickenOutCountdownType countdownType;
 
@@ -128,6 +135,9 @@ public class ChickenOut extends MapGame implements Listener {
 
 		roundTimeLeft = 0;
 		finalTimeLeft = 0;
+
+		countdownOver = false;
+		beginCountdownValue = 10;
 
 		config = null;
 
@@ -289,8 +299,10 @@ public class ChickenOut extends MapGame implements Listener {
 				wrappedMobs.forEach(wm -> wm.updateMobTarget());
 
 				// Spawn feathers and mobs
-				spawnFeathers();
-				spawnMobs();
+				if (countdownOver) {
+					spawnFeathers();
+					spawnMobs();
+				}
 
 				// End game
 				if (!hasEnded()) {
@@ -314,6 +326,33 @@ public class ChickenOut extends MapGame implements Listener {
 				wrappedFeathers.forEach(f -> f.showParticles());
 			}
 		}, 5L);
+
+		beginCountdown = new SimpleTask(plugin, new Runnable() {
+			@Override
+			public void run() {
+				if (beginCountdownValue > 0) {
+					VersionIndependentSound.NOTE_PLING.broadcast(1.0F, 1.0F);
+					Bukkit.getServer().getOnlinePlayers().forEach(player -> VersionIndependentUtils.get().sendTitle(player, ChatColor.AQUA + "" + beginCountdownValue, "", 0, 20, 0));
+					beginCountdownValue--;
+				} else {
+					VersionIndependentSound.NOTE_PLING.broadcast(1.0F, 1.25F);
+					Bukkit.getServer().getOnlinePlayers().forEach(player -> VersionIndependentUtils.get().sendTitle(player, ChatColor.AQUA + "GO", "", 0, 20, 5));
+					sendBeginEvent();
+					countdownOver = true;
+					Task.tryStopTask(beginCountdown);
+				}
+			}
+		}, 20L);
+
+		actionBarTask = new SimpleTask(plugin, new Runnable() {
+			@Override
+			public void run() {
+				Bukkit.getServer().getOnlinePlayers().stream().filter(player -> feathers.containsKey(player.getUniqueId()) && player.getGameMode() != GameMode.SPECTATOR).forEach(player -> {
+					int featherCount = feathers.get(player.getUniqueId());
+					VersionIndependentUtils.get().sendActionBarMessage(player, ChatColor.GREEN + "" + featherCount + " feather" + (featherCount == 1 ? "" : "s") + " collected");
+				});
+			}
+		}, 10L);
 	}
 
 	public ChickenOutCountdownType getCountdownType() {
@@ -644,8 +683,6 @@ public class ChickenOut extends MapGame implements Listener {
 			VersionIndependentUtils.get().setGameRule(world, "keepInventory", "true");
 		});
 
-		spawnFeathers();
-
 		roundTimeLeft = config.getLevelTime();
 		finalTimeLeft = config.getFinalRoundTime();
 
@@ -655,9 +692,13 @@ public class ChickenOut extends MapGame implements Listener {
 		Task.tryStartTask(chickenOutTask);
 		Task.tryStartTask(stuckCheckTimer);
 		Task.tryStartTask(speedFixTask);
+		Task.tryStartTask(actionBarTask);
 
 		started = true;
-		sendBeginEvent();
+
+		Task.tryStartTask(beginCountdown);
+
+		players.forEach(uuid -> feathers.put(uuid, 0));
 	}
 
 	public ChickenOutConfig getConfig() {
@@ -742,6 +783,7 @@ public class ChickenOut extends MapGame implements Listener {
 		Task.tryStopTask(chickenOutTask);
 		Task.tryStopTask(stuckCheckTimer);
 		Task.tryStopTask(speedFixTask);
+		Task.tryStopTask(actionBarTask);
 
 		getActiveMap().getStarterLocations().forEach(location -> {
 			Firework fw = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK);
@@ -805,6 +847,18 @@ public class ChickenOut extends MapGame implements Listener {
 					}
 				}
 			}
+		}
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void onPlayerMove(PlayerMoveEvent e) {
+		if (started && !ended && !countdownOver) {
+			Location to = e.getFrom().clone();
+
+			to.setYaw(e.getTo().getYaw());
+			to.setPitch(e.getTo().getPitch());
+
+			e.setTo(to);
 		}
 	}
 
