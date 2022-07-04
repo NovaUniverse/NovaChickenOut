@@ -60,6 +60,7 @@ import net.zeeraa.novacore.spigot.NovaCore;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentMaterial;
 import net.zeeraa.novacore.spigot.abstraction.enums.VersionIndependentSound;
+import net.zeeraa.novacore.spigot.abstraction.events.VersionIndependentPlayerAchievementAwardedEvent;
 import net.zeeraa.novacore.spigot.abstraction.events.VersionIndependentPlayerPickUpItemEvent;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.GameEndReason;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.MapGame;
@@ -69,6 +70,7 @@ import net.zeeraa.novacore.spigot.module.modules.compass.CompassTracker;
 import net.zeeraa.novacore.spigot.tasks.SimpleTask;
 import net.zeeraa.novacore.spigot.teams.Team;
 import net.zeeraa.novacore.spigot.teams.TeamManager;
+import net.zeeraa.novacore.spigot.utils.ChatColorRGBMapper;
 import net.zeeraa.novacore.spigot.utils.ItemBuilder;
 import net.zeeraa.novacore.spigot.utils.LocationUtils;
 import net.zeeraa.novacore.spigot.utils.PlayerUtils;
@@ -345,6 +347,10 @@ public class ChickenOut extends MapGame implements Listener {
 		return level;
 	}
 
+	public void setLevel(int level) {
+		this.level = level;
+	}
+
 	public int getFinalPlayerScore(UUID uuid) {
 		if (playerFinalScore.containsKey(uuid)) {
 			return playerFinalScore.get(uuid);
@@ -531,9 +537,26 @@ public class ChickenOut extends MapGame implements Listener {
 		player.setGameMode(GameMode.SURVIVAL);
 		player.teleport(location);
 
+		Team team = null;
+		if (TeamManager.hasTeamManager()) {
+			team = TeamManager.getTeamManager().getPlayerTeam(player);
+		}
+
 		ItemBuilder swordBuilder = new ItemBuilder(VersionIndependentMaterial.WOODEN_SWORD);
 		swordBuilder.setUnbreakable(true);
+
+		ItemBuilder compassBuilder = new ItemBuilder(Material.COMPASS);
+		compassBuilder.setName(ChatColor.GOLD + "Stash feathers");
+
+		ItemBuilder chestplateBuilder = new ItemBuilder(Material.LEATHER_CHESTPLATE);
+		chestplateBuilder.setUnbreakable(true);
+		if (team != null) {
+			chestplateBuilder.setLeatherArmorColor(ChatColorRGBMapper.chatColorToRGBColorData(team.getTeamColor()).toBukkitColor());
+		}
+
 		player.getInventory().addItem(swordBuilder.build());
+		player.getInventory().addItem(compassBuilder.build());
+		player.getInventory().setChestplate(chestplateBuilder.build());
 
 		new BukkitRunnable() {
 			@Override
@@ -614,7 +637,7 @@ public class ChickenOut extends MapGame implements Listener {
 			tpToArena(player, location);
 		}
 
-		Bukkit.getServer().getOnlinePlayers().forEach(player -> player.getInventory().addItem(new ItemBuilder(Material.COMPASS).setName(ChatColor.GOLD + "Stash feathers").build()));
+		Bukkit.getServer().getWorlds().forEach(world -> VersionIndependentUtils.get().setGameRule(world, "announceAdvancements", "false"));
 
 		spawnFeathers();
 
@@ -808,6 +831,11 @@ public class ChickenOut extends MapGame implements Listener {
 				e.getItem().remove();
 			}
 		}
+	}
+
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void onVersionIndependentPlayerAchievementAwarded(VersionIndependentPlayerAchievementAwardedEvent e) {
+		e.setCancelled(true);
 	}
 
 	public List<UUID> getAllParticipatingPlayers() {

@@ -6,8 +6,11 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -19,6 +22,9 @@ import net.novauniverse.games.chickenout.game.config.ChickenOutConfig;
 import net.novauniverse.games.chickenout.game.mobs.ChickenOutMobRepo;
 import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.commons.utils.JSONFileUtils;
+import net.zeeraa.novacore.spigot.command.AllowedSenders;
+import net.zeeraa.novacore.spigot.debug.DebugCommandRegistrator;
+import net.zeeraa.novacore.spigot.debug.DebugTrigger;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.GameManager;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.map.mapmodule.MapModuleManager;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.mapselector.selectors.guivoteselector.GUIMapVote;
@@ -109,13 +115,50 @@ public class NovaChickenOut extends JavaPlugin implements Listener {
 		// Read maps
 		Log.info(getName(), "Loading maps from " + mapFolder.getPath());
 		GameManager.getInstance().readMapsFromFolder(mapFolder, worldFolder);
-		
+
 		new BukkitRunnable() {
 			@Override
 			public void run() {
 				Log.info("ChickenOut", ChickenOutMobRepo.getProviders().size() + " custom mobs loaded");
 			}
 		}.runTaskLater(this, 20L);
+
+		DebugCommandRegistrator.getInstance().addDebugTrigger(new DebugTrigger() {
+			@Override
+			public void onExecute(CommandSender sender, String commandLabel, String[] args) {
+				if (args.length == 0) {
+					sender.sendMessage(ChatColor.RED + "Missing arg: level");
+				} else {
+					try {
+						int level = Integer.parseInt(args[0]);
+						game.setLevel(level);
+						sender.sendMessage(ChatColor.GREEN + "Ok");
+					} catch (Exception e) {
+						sender.sendMessage(ChatColor.RED + "Invalid level");
+					}
+				}
+			}
+
+			@Override
+			public PermissionDefault getPermissionDefault() {
+				return PermissionDefault.OP;
+			}
+
+			@Override
+			public String getPermission() {
+				return "novauniverse.debug.chickenout.setlevel";
+			}
+
+			@Override
+			public String getName() {
+				return "setlevel";
+			}
+
+			@Override
+			public AllowedSenders getAllowedSenders() {
+				return AllowedSenders.ALL;
+			}
+		});
 	}
 
 	@Override
