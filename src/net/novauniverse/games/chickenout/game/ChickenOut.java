@@ -88,10 +88,12 @@ public class ChickenOut extends MapGame implements Listener {
 	private List<WrappedChickenOutFeather> wrappedFeathers;
 	private List<WrappedChickenOutMob> wrappedMobs;
 
-	private static final int CHANCE_5_FEATHERS = 5;
-	private static final int CHANCE_10_FEATHERS = 1;
+	public static final int CHANCE_5_FEATHERS = 5;
+	public static final int CHANCE_10_FEATHERS = 1;
 
-	private static final double MOB_PLAYER_SPAWN_RADIUS = 16;
+	public static final double MOB_PLAYER_SPAWN_RADIUS = 16;
+
+	public static final int START_COUNTDOWN = 10;
 
 	private Map<Team, Integer> teamFinalScore;
 	private Map<UUID, Integer> playerFinalScore;
@@ -137,7 +139,7 @@ public class ChickenOut extends MapGame implements Listener {
 		finalTimeLeft = 0;
 
 		countdownOver = false;
-		beginCountdownValue = 10;
+		beginCountdownValue = START_COUNTDOWN;
 
 		config = null;
 
@@ -698,6 +700,10 @@ public class ChickenOut extends MapGame implements Listener {
 		started = true;
 
 		Task.tryStartTask(beginCountdown);
+
+		Bukkit.getServer().getOnlinePlayers().forEach(player -> {
+			player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, START_COUNTDOWN * 20, 0));
+		});
 
 		players.forEach(uuid -> feathers.put(uuid, 0));
 	}
