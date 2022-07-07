@@ -702,7 +702,7 @@ public class ChickenOut extends MapGame implements Listener {
 		Task.tryStartTask(beginCountdown);
 
 		Bukkit.getServer().getOnlinePlayers().forEach(player -> {
-			player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, START_COUNTDOWN * 20, 0));
+			player.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, (START_COUNTDOWN * 20) + 40, 0));
 		});
 
 		players.forEach(uuid -> feathers.put(uuid, 0));
