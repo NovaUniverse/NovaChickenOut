@@ -57,6 +57,7 @@ import net.novauniverse.games.chickenout.game.utils.WrappedChickenOutMob;
 import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.commons.tasks.Task;
 import net.zeeraa.novacore.commons.utils.Callback;
+import net.zeeraa.novacore.commons.utils.RandomGenerator;
 import net.zeeraa.novacore.commons.utils.TextUtils;
 import net.zeeraa.novacore.spigot.NovaCore;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
@@ -87,6 +88,8 @@ public class ChickenOut extends MapGame implements Listener {
 
 	private List<WrappedChickenOutFeather> wrappedFeathers;
 	private List<WrappedChickenOutMob> wrappedMobs;
+
+	private List<Location> lightningLocations;
 
 	public static final int CHANCE_5_FEATHERS = 5;
 	public static final int CHANCE_10_FEATHERS = 1;
@@ -119,6 +122,9 @@ public class ChickenOut extends MapGame implements Listener {
 	private int beginCountdownValue;
 	private boolean countdownOver;
 
+	private boolean stormActive;
+	private int stormTaskId;
+
 	private ChickenOutCountdownType countdownType;
 
 	private List<Callback> timerDecrementCallbacks;
@@ -146,6 +152,8 @@ public class ChickenOut extends MapGame implements Listener {
 		wrappedFeathers = new ArrayList<WrappedChickenOutFeather>();
 		wrappedMobs = new ArrayList<WrappedChickenOutMob>();
 
+		lightningLocations = new ArrayList<>();
+
 		timerDecrementCallbacks = new ArrayList<>();
 		levelChangeCallbacks = new ArrayList<>();
 
@@ -157,6 +165,9 @@ public class ChickenOut extends MapGame implements Listener {
 		fullPlayerList = new ArrayList<>();
 
 		level = 1;
+
+		stormActive = false;
+		stormTaskId = -1;
 
 		finalTimer = new SimpleTask(plugin, new Runnable() {
 			@Override
@@ -263,7 +274,7 @@ public class ChickenOut extends MapGame implements Listener {
 					roundTimeLeft--;
 				} else {
 					roundTimeLeft = config.getLevelTime();
-					level++;
+					incrementLevel();
 					Bukkit.getServer().getOnlinePlayers().forEach(player -> VersionIndependentUtils.get().sendTitle(player, ChatColor.RED + "Level " + level, "", 10, 40, 10));
 					Bukkit.getServer().broadcastMessage(ChatColor.RED + "Monsters will now spawn at level " + level);
 					levelChangeCallbacks.forEach(c -> c.execute());
@@ -390,8 +401,45 @@ public class ChickenOut extends MapGame implements Listener {
 		return level;
 	}
 
+	public void incrementLevel() {
+		setLevel(level + 1);
+	}
+
+	public void setStorm(boolean state) {
+		if (stormActive) {
+			stormActive = false;
+			Bukkit.getScheduler().cancelTask(stormTaskId);
+			getWorld().setTime(6000);
+		}
+		if (state) {
+			stormActive = true;
+			startNextStormTimer();
+			getWorld().setTime(18000);
+		}
+	}
+
+	private void startNextStormTimer() {
+		int delay = RandomGenerator.generate(20 * 5, 20 * 30, getRandom());
+		Log.debug("CheckenOut", "Next lightning in " + delay + " ticks");
+
+		stormTaskId = new BukkitRunnable() {
+			@Override
+			public void run() {
+				startNextStormTimer();
+
+				if (lightningLocations.size() > 0) {
+					Location location = lightningLocations.get(getRandom().nextInt(lightningLocations.size()));
+					location.getWorld().strikeLightning(location);
+				}
+			}
+		}.runTaskLater(getPlugin(), delay).getTaskId();
+	}
+
 	public void setLevel(int level) {
 		this.level = level;
+		if (level == config.getMaxLevel()) {
+			setStorm(true);
+		}
 		levelChangeCallbacks.forEach(c -> c.execute());
 	}
 
@@ -706,6 +754,11 @@ public class ChickenOut extends MapGame implements Listener {
 		});
 
 		players.forEach(uuid -> feathers.put(uuid, 0));
+
+		getWorld().setTime(6000);
+		VersionIndependentUtils.get().setGameRule(getWorld(), "doDaylightCycle", "false");
+
+		getConfig().getLightningLocations().forEach(l -> lightningLocations.add(l.toBukkitLocation(getWorld())));
 	}
 
 	public ChickenOutConfig getConfig() {
@@ -791,6 +844,8 @@ public class ChickenOut extends MapGame implements Listener {
 		Task.tryStopTask(stuckCheckTimer);
 		Task.tryStopTask(speedFixTask);
 		Task.tryStopTask(actionBarTask);
+
+		setStorm(false);
 
 		getActiveMap().getStarterLocations().forEach(location -> {
 			Firework fw = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK);

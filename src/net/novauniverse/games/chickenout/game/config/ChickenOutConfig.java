@@ -16,6 +16,8 @@ public class ChickenOutConfig extends MapModule {
 	private List<VectorArea> mobSpawnAreas;
 	private List<VectorArea> featherSpawnAreas;
 
+	private List<XYZLocation> lightningLocations;
+
 	private XYZLocation chickenOutAreaCenterXYZ;
 	private Location chickenOutAreaCenter;
 
@@ -31,6 +33,12 @@ public class ChickenOutConfig extends MapModule {
 
 	public ChickenOutConfig(JSONObject json) {
 		super(json);
+
+		lightningLocations = new ArrayList<>();
+		JSONArray lightningLocationsJSON = json.getJSONArray("lightning_locations");
+		for (int i = 0; i < lightningLocationsJSON.length(); i++) {
+			lightningLocations.add(XYZLocation.fromJSON(lightningLocationsJSON.getJSONObject(i)));
+		}
 
 		mobSpawnAreas = new ArrayList<VectorArea>();
 		JSONArray mobAreasJSON = json.getJSONArray("mob_spawn_areas");
@@ -64,6 +72,10 @@ public class ChickenOutConfig extends MapModule {
 
 	public List<VectorArea> getFeatherSpawnAreas() {
 		return featherSpawnAreas;
+	}
+	
+	public List<XYZLocation> getLightningLocations() {
+		return lightningLocations;
 	}
 
 	public VectorArea getChickenOutArea() {
