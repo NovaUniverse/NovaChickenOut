@@ -13,7 +13,7 @@ import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.spigot.utils.ClassFinder;
 
 public class ChickenOutMobRepo {
-	private static List<ChickenOutMobProvider> providers = new ArrayList<>();
+	private static final List<ChickenOutMobProvider> providers = new ArrayList<>();
 
 	public static List<ChickenOutMobProvider> getProviders() {
 		return providers;
