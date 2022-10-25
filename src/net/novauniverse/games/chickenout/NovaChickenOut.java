@@ -25,6 +25,7 @@ import net.zeeraa.novacore.commons.utils.JSONFileUtils;
 import net.zeeraa.novacore.spigot.command.AllowedSenders;
 import net.zeeraa.novacore.spigot.debug.DebugCommandRegistrator;
 import net.zeeraa.novacore.spigot.debug.DebugTrigger;
+import net.zeeraa.novacore.spigot.gameengine.NovaCoreGameEngine;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.GameManager;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.map.mapmodule.MapModuleManager;
 import net.zeeraa.novacore.spigot.gameengine.module.modules.game.mapselector.selectors.guivoteselector.GUIMapVote;
@@ -52,6 +53,11 @@ public class NovaChickenOut extends JavaPlugin implements Listener {
 		// Create files and folders
 		File mapFolder = new File(this.getDataFolder().getPath() + File.separator + "Maps");
 		File worldFolder = new File(this.getDataFolder().getPath() + File.separator + "Worlds");
+
+		if (NovaCoreGameEngine.getInstance().getRequestedGameDataDirectory() != null) {
+			mapFolder = new File(NovaCoreGameEngine.getInstance().getRequestedGameDataDirectory().getAbsolutePath() + File.separator + getName() + File.separator + "Maps");
+			worldFolder = new File(NovaCoreGameEngine.getInstance().getRequestedGameDataDirectory().getAbsolutePath() + File.separator + getName() + File.separator + "Worlds");
+		}
 
 		File mapOverrides = new File(this.getDataFolder().getPath() + File.separator + "map_overrides.json");
 		if (mapOverrides.exists()) {
