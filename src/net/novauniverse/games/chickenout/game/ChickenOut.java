@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import net.novauniverse.games.chickenout.game.event.*;
 import org.bukkit.Bukkit;
 import org.bukkit.FireworkEffect;
 import org.bukkit.GameMode;
@@ -45,10 +46,6 @@ import org.bukkit.util.Vector;
 import net.md_5.bungee.api.ChatColor;
 import net.novauniverse.games.chickenout.NovaChickenOut;
 import net.novauniverse.games.chickenout.game.config.ChickenOutConfig;
-import net.novauniverse.games.chickenout.game.event.AbstractChickenOutPlacementEvent;
-import net.novauniverse.games.chickenout.game.event.ChickenOutPlayerChickenOutEvent;
-import net.novauniverse.games.chickenout.game.event.ChickenOutPlayerPlacementEvent;
-import net.novauniverse.games.chickenout.game.event.ChickenOutTeamPlacementEvent;
 import net.novauniverse.games.chickenout.game.mobs.ChickenOutMobProvider;
 import net.novauniverse.games.chickenout.game.mobs.ChickenOutMobRepo;
 import net.novauniverse.games.chickenout.game.utils.TeamScoreEntry;
@@ -402,6 +399,7 @@ public class ChickenOut extends MapGame implements Listener {
 	}
 
 	public void incrementLevel() {
+		Bukkit.getPluginManager().callEvent(new ChickenOutPhaseChangeEvent(level + 1));
 		setLevel(level + 1);
 	}
 
