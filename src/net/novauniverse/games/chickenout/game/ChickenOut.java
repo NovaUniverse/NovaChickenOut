@@ -619,12 +619,10 @@ public class ChickenOut extends MapGame implements Listener {
 
 		Collections.shuffle(toTeleport, getRandom());
 
-		List<Location> toUse = new ArrayList<Location>();
+		List<Location> toUse = new ArrayList<>();
 		while (toTeleport.size() > 0) {
 			if (toUse.size() == 0) {
-				for (Location location : getActiveMap().getStarterLocations()) {
-					toUse.add(location);
-				}
+				toUse.addAll(getActiveMap().getStarterLocations());
 
 				Collections.shuffle(toUse, getRandom());
 			}
