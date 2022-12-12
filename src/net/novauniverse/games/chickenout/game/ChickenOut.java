@@ -1,51 +1,9 @@
 package net.novauniverse.games.chickenout.game;
 
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import net.novauniverse.games.chickenout.game.event.*;
-import org.bukkit.Bukkit;
-import org.bukkit.FireworkEffect;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.block.Block;
-import org.bukkit.entity.Creature;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Firework;
-import org.bukkit.entity.Item;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.entity.EntityExplodeEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
-import org.bukkit.inventory.meta.FireworkMeta;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.util.Vector;
-
 import net.md_5.bungee.api.ChatColor;
 import net.novauniverse.games.chickenout.NovaChickenOut;
 import net.novauniverse.games.chickenout.game.config.ChickenOutConfig;
+import net.novauniverse.games.chickenout.game.event.*;
 import net.novauniverse.games.chickenout.game.mobs.ChickenOutMobProvider;
 import net.novauniverse.games.chickenout.game.mobs.ChickenOutMobRepo;
 import net.novauniverse.games.chickenout.game.utils.TeamScoreEntry;
@@ -54,7 +12,6 @@ import net.novauniverse.games.chickenout.game.utils.WrappedChickenOutMob;
 import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.commons.tasks.Task;
 import net.zeeraa.novacore.commons.utils.Callback;
-import net.zeeraa.novacore.commons.utils.RandomGenerator;
 import net.zeeraa.novacore.commons.utils.TextUtils;
 import net.zeeraa.novacore.spigot.NovaCore;
 import net.zeeraa.novacore.spigot.abstraction.VersionIndependentUtils;
@@ -70,12 +27,30 @@ import net.zeeraa.novacore.spigot.module.modules.compass.CompassTracker;
 import net.zeeraa.novacore.spigot.tasks.SimpleTask;
 import net.zeeraa.novacore.spigot.teams.Team;
 import net.zeeraa.novacore.spigot.teams.TeamManager;
-import net.zeeraa.novacore.spigot.utils.ChatColorRGBMapper;
-import net.zeeraa.novacore.spigot.utils.ItemBuilder;
-import net.zeeraa.novacore.spigot.utils.LocationUtils;
-import net.zeeraa.novacore.spigot.utils.PlayerUtils;
-import net.zeeraa.novacore.spigot.utils.RandomFireworkEffect;
-import net.zeeraa.novacore.spigot.utils.VectorArea;
+import net.zeeraa.novacore.spigot.utils.*;
+import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.entity.*;
+import org.bukkit.event.Event;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.*;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.inventory.meta.FireworkMeta;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
+
+import java.awt.Color;
+import java.util.List;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 public class ChickenOut extends MapGame implements Listener {
 	private boolean started;
@@ -119,9 +94,6 @@ public class ChickenOut extends MapGame implements Listener {
 	private int beginCountdownValue;
 	private boolean countdownOver;
 
-	private boolean stormActive;
-	private int stormTaskId;
-
 	private ChickenOutCountdownType countdownType;
 
 	private List<Callback> timerDecrementCallbacks;
@@ -136,7 +108,7 @@ public class ChickenOut extends MapGame implements Listener {
 
 		started = false;
 		ended = false;
-		teamSpawnLocations = new HashMap<Team, Location>();
+		teamSpawnLocations = new HashMap<>();
 
 		roundTimeLeft = 0;
 		finalTimeLeft = 0;
@@ -146,61 +118,55 @@ public class ChickenOut extends MapGame implements Listener {
 
 		config = null;
 
-		wrappedFeathers = new ArrayList<WrappedChickenOutFeather>();
-		wrappedMobs = new ArrayList<WrappedChickenOutMob>();
+		wrappedFeathers = new ArrayList<>();
+		wrappedMobs = new ArrayList<>();
 
 		lightningLocations = new ArrayList<>();
 
 		timerDecrementCallbacks = new ArrayList<>();
 		levelChangeCallbacks = new ArrayList<>();
 
-		feathers = new HashMap<UUID, Integer>();
+		feathers = new HashMap<>();
 
-		teamFinalScore = new HashMap<Team, Integer>();
-		playerFinalScore = new HashMap<UUID, Integer>();
+		teamFinalScore = new HashMap<>();
+		playerFinalScore = new HashMap<>();
 
 		fullPlayerList = new ArrayList<>();
 
 		level = 1;
 
-		stormActive = false;
-		stormTaskId = -1;
+		finalTimer = new SimpleTask(plugin, () -> {
+			countdownType = ChickenOutCountdownType.FINAL;
+			if (finalTimeLeft > 0) {
+				finalTimeLeft--;
 
-		finalTimer = new SimpleTask(plugin, new Runnable() {
-			@Override
-			public void run() {
-				countdownType = ChickenOutCountdownType.FINAL;
-				if (finalTimeLeft > 0) {
-					finalTimeLeft--;
-
-					if (finalTimeLeft == 30 || finalTimeLeft == 60) {
-						Bukkit.getServer().broadcastMessage(ChatColor.RED + "" + finalTimeLeft + " seconds left " + TextUtils.ICON_WARNING);
-						Bukkit.getServer().getOnlinePlayers().forEach(player -> {
-							VersionIndependentSound.NOTE_PLING.play(player);
-							VersionIndependentUtils.get().sendTitle(player, "", ChatColor.RED + TextUtils.ICON_WARNING + " " + finalTimeLeft + " seconds left " + TextUtils.ICON_WARNING, 0, 40, 10);
-						});
-					}
-
-					if (finalTimeLeft <= 10) {
-						Bukkit.getServer().getOnlinePlayers().forEach(player -> {
-							VersionIndependentSound.NOTE_PLING.play(player);
-							VersionIndependentUtils.get().sendTitle(player, "", ChatColor.RED + TextUtils.ICON_WARNING + " " + finalTimeLeft + " second" + (finalTimeLeft == 1 ? "" : "s") + " left " + TextUtils.ICON_WARNING, 0, 20, 10);
-						});
-					}
-				} else {
-					Task.tryStopTask(finalTimer);
-					Bukkit.getServer().getOnlinePlayers().stream().filter(player -> players.contains(player.getUniqueId())).forEach(player -> {
-						player.setGameMode(GameMode.SPECTATOR);
-						player.getWorld().strikeLightning(player.getLocation());
+				if (finalTimeLeft == 30 || finalTimeLeft == 60) {
+					Bukkit.getServer().broadcastMessage(ChatColor.RED + "" + finalTimeLeft + " seconds left " + TextUtils.ICON_WARNING);
+					Bukkit.getServer().getOnlinePlayers().forEach(player -> {
+						VersionIndependentSound.NOTE_PLING.play(player);
+						VersionIndependentUtils.get().sendTitle(player, "", ChatColor.RED + TextUtils.ICON_WARNING + " " + finalTimeLeft + " seconds left " + TextUtils.ICON_WARNING, 0, 40, 10);
 					});
-					endGame(GameEndReason.TIME);
 				}
 
-				timerDecrementCallbacks.forEach(callback -> callback.execute());
-
-				if (hasActiveMap()) {
-					Bukkit.getServer().getOnlinePlayers().forEach(player -> player.setCompassTarget(config.getChickenOutAreaCenter()));
+				if (finalTimeLeft <= 10) {
+					Bukkit.getServer().getOnlinePlayers().forEach(player -> {
+						VersionIndependentSound.NOTE_PLING.play(player);
+						VersionIndependentUtils.get().sendTitle(player, "", ChatColor.RED + TextUtils.ICON_WARNING + " " + finalTimeLeft + " second" + (finalTimeLeft == 1 ? "" : "s") + " left " + TextUtils.ICON_WARNING, 0, 20, 10);
+					});
 				}
+			} else {
+				Task.tryStopTask(finalTimer);
+				Bukkit.getServer().getOnlinePlayers().stream().filter(player -> players.contains(player.getUniqueId())).forEach(player -> {
+					player.setGameMode(GameMode.SPECTATOR);
+					player.getWorld().strikeLightning(player.getLocation());
+				});
+				endGame(GameEndReason.TIME);
+			}
+
+			timerDecrementCallbacks.forEach(callback -> callback.execute());
+
+			if (hasActiveMap()) {
+				Bukkit.getServer().getOnlinePlayers().forEach(player -> player.setCompassTarget(config.getChickenOutAreaCenter()));
 			}
 		}, 20L);
 
@@ -263,31 +229,28 @@ public class ChickenOut extends MapGame implements Listener {
 			}
 		}, 1L);
 
-		roundTimer = new SimpleTask(plugin, new Runnable() {
-			@Override
-			public void run() {
-				countdownType = ChickenOutCountdownType.ROUND;
-				if (roundTimeLeft > 0) {
-					roundTimeLeft--;
-				} else {
-					roundTimeLeft = config.getLevelTime();
-					incrementLevel();
-					Bukkit.getServer().getOnlinePlayers().forEach(player -> VersionIndependentUtils.get().sendTitle(player, ChatColor.RED + "Level " + level, "", 10, 40, 10));
-					Bukkit.getServer().broadcastMessage(ChatColor.RED + "Monsters will now spawn at level " + level);
-					levelChangeCallbacks.forEach(c -> c.execute());
-					if (level >= config.getMaxLevel()) {
-						Task.tryStopTask(roundTimer);
-						Task.tryStartTask(finalTimer);
-					}
+		roundTimer = new SimpleTask(plugin, () -> {
+			countdownType = ChickenOutCountdownType.ROUND;
+			if (roundTimeLeft > 0) {
+				roundTimeLeft--;
+			} else {
+				roundTimeLeft = config.getLevelTime();
+				incrementLevel();
+				Bukkit.getServer().getOnlinePlayers().forEach(player -> VersionIndependentUtils.get().sendTitle(player, ChatColor.RED + "Level " + level, "", 10, 40, 10));
+				Bukkit.getServer().broadcastMessage(ChatColor.RED + "Monsters will now spawn at level " + level);
+				levelChangeCallbacks.forEach(c -> c.execute());
+				if (level >= config.getMaxLevel()) {
+					Task.tryStopTask(roundTimer);
+					Task.tryStartTask(finalTimer);
 				}
-
-				// Handle mob removal time
-				wrappedMobs.stream().filter(w -> w.getLevel() != level).forEach(w -> w.decrementRemovalTimer());
-				wrappedMobs.stream().filter(w -> w.getTimeUntilRemoval() <= 0).forEach(w -> w.getEntity().remove());
-
-				// Callbacks
-				timerDecrementCallbacks.forEach(callback -> callback.execute());
 			}
+
+			// Handle mob removal time
+			wrappedMobs.stream().filter(w -> w.getLevel() != level).forEach(w -> w.decrementRemovalTimer());
+			wrappedMobs.stream().filter(w -> w.getTimeUntilRemoval() <= 0).forEach(w -> w.getEntity().remove());
+
+			// Callbacks
+			timerDecrementCallbacks.forEach(callback -> callback.execute());
 		}, 20L);
 
 		monitorTask = new SimpleTask(plugin, new Runnable() {
@@ -403,42 +366,11 @@ public class ChickenOut extends MapGame implements Listener {
 		setLevel(level + 1);
 	}
 
-	public void setStorm(boolean state) {
-		if (stormActive) {
-			stormActive = false;
-			Bukkit.getScheduler().cancelTask(stormTaskId);
-			getWorld().setTime(6000);
-		}
-		if (state) {
-			stormActive = true;
-			startNextStormTimer();
-			getWorld().setTime(18000);
-		}
-	}
 
-	private void startNextStormTimer() {
-		int delay = RandomGenerator.generate(20 * 5, 20 * 30, getRandom());
-		Log.debug("CheckenOut", "Next lightning in " + delay + " ticks");
-
-		stormTaskId = new BukkitRunnable() {
-			@Override
-			public void run() {
-				startNextStormTimer();
-
-				if (lightningLocations.size() > 0) {
-					Location location = lightningLocations.get(getRandom().nextInt(lightningLocations.size()));
-					location.getWorld().strikeLightning(location);
-				}
-			}
-		}.runTaskLater(getPlugin(), delay).getTaskId();
-	}
 
 	public void setLevel(int level) {
 		this.level = level;
-		if (level == config.getMaxLevel()) {
-			setStorm(true);
-		}
-		levelChangeCallbacks.forEach(c -> c.execute());
+		levelChangeCallbacks.forEach(Callback::execute);
 	}
 
 	public int getFinalPlayerScore(UUID uuid) {
@@ -843,7 +775,7 @@ public class ChickenOut extends MapGame implements Listener {
 		Task.tryStopTask(speedFixTask);
 		Task.tryStopTask(actionBarTask);
 
-		setStorm(false);
+
 
 		getActiveMap().getStarterLocations().forEach(location -> {
 			Firework fw = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK);
