@@ -135,6 +135,8 @@ public class ChickenOut extends MapGame implements Listener {
 
 		level = 1;
 
+		addLevelChangeCallback(() -> Bukkit.getPluginManager().callEvent(new ChickenOutPhaseChangeEvent(level)));
+
 		finalTimer = new SimpleTask(plugin, () -> {
 			countdownType = ChickenOutCountdownType.FINAL;
 			if (finalTimeLeft > 0) {
@@ -362,7 +364,6 @@ public class ChickenOut extends MapGame implements Listener {
 	}
 
 	public void incrementLevel() {
-		Bukkit.getPluginManager().callEvent(new ChickenOutPhaseChangeEvent(level + 1));
 		setLevel(level + 1);
 	}
 
