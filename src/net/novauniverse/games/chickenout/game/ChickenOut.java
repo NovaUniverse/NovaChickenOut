@@ -135,8 +135,6 @@ public class ChickenOut extends MapGame implements Listener {
 
 		level = 1;
 
-		addLevelChangeCallback(() -> Bukkit.getPluginManager().callEvent(new ChickenOutPhaseChangeEvent(level)));
-
 		finalTimer = new SimpleTask(plugin, () -> {
 			countdownType = ChickenOutCountdownType.FINAL;
 			if (finalTimeLeft > 0) {
@@ -230,61 +228,59 @@ public class ChickenOut extends MapGame implements Listener {
 				Bukkit.getServer().getOnlinePlayers().stream().filter(player -> player.hasPotionEffect(PotionEffectType.SPEED)).forEach(player -> player.removePotionEffect(PotionEffectType.SPEED));
 			}
 		}, 1L);
-
+		levelChangeCallbacks.add(() -> {
+			Bukkit.getPluginManager().callEvent(new ChickenOutPhaseChangeEvent(level));
+			roundTimeLeft = config.getLevelTime();
+			Bukkit.getServer().getOnlinePlayers().forEach(player -> VersionIndependentUtils.get().sendTitle(player, ChatColor.RED + "Level " + level, "", 10, 40, 10));
+			Bukkit.getServer().broadcastMessage(ChatColor.RED + "Monsters will now spawn at level " + level);
+			if (level >= config.getMaxLevel()) {
+				Task.tryStopTask(roundTimer);
+				Task.tryStartTask(finalTimer);
+			}
+		});
 		roundTimer = new SimpleTask(plugin, () -> {
 			countdownType = ChickenOutCountdownType.ROUND;
 			if (roundTimeLeft > 0) {
 				roundTimeLeft--;
 			} else {
-				roundTimeLeft = config.getLevelTime();
 				incrementLevel();
-				Bukkit.getServer().getOnlinePlayers().forEach(player -> VersionIndependentUtils.get().sendTitle(player, ChatColor.RED + "Level " + level, "", 10, 40, 10));
-				Bukkit.getServer().broadcastMessage(ChatColor.RED + "Monsters will now spawn at level " + level);
-				levelChangeCallbacks.forEach(c -> c.execute());
-				if (level >= config.getMaxLevel()) {
-					Task.tryStopTask(roundTimer);
-					Task.tryStartTask(finalTimer);
-				}
 			}
 
 			// Handle mob removal time
-			wrappedMobs.stream().filter(w -> w.getLevel() != level).forEach(w -> w.decrementRemovalTimer());
+			wrappedMobs.stream().filter(w -> w.getLevel() != level).forEach(WrappedChickenOutMob::decrementRemovalTimer);
 			wrappedMobs.stream().filter(w -> w.getTimeUntilRemoval() <= 0).forEach(w -> w.getEntity().remove());
 
 			// Callbacks
-			timerDecrementCallbacks.forEach(callback -> callback.execute());
+			timerDecrementCallbacks.forEach(Callback::execute);
 		}, 20L);
 
-		monitorTask = new SimpleTask(plugin, new Runnable() {
-			@Override
-			public void run() {
-				// Compass target
-				Bukkit.getServer().getOnlinePlayers().stream().filter(p -> p.getWorld() == getWorld()).forEach(player -> player.setCompassTarget(config.getChickenOutAreaCenter()));
+		monitorTask = new SimpleTask(plugin, () -> {
+			// Compass target
+			Bukkit.getServer().getOnlinePlayers().stream().filter(p -> p.getWorld() == getWorld()).forEach(player -> player.setCompassTarget(config.getChickenOutAreaCenter()));
 
-				// Remove dead entity wrappers
-				wrappedFeathers.removeIf(w -> w.getItem().isDead());
-				wrappedMobs.removeIf(w -> w.getEntity().isDead());
+			// Remove dead entity wrappers
+			wrappedFeathers.removeIf(w -> w.getItem().isDead());
+			wrappedMobs.removeIf(w -> w.getEntity().isDead());
 
-				// Player food
-				Bukkit.getServer().getOnlinePlayers().forEach(player -> {
-					player.setSaturation(0);
-					player.setFoodLevel(20);
-				});
+			// Player food
+			Bukkit.getServer().getOnlinePlayers().forEach(player -> {
+				player.setSaturation(0);
+				player.setFoodLevel(20);
+			});
 
-				// Update targets
-				wrappedMobs.forEach(wm -> wm.updateMobTarget());
+			// Update targets
+			wrappedMobs.forEach(wm -> wm.updateMobTarget());
 
-				// Spawn feathers and mobs
-				if (countdownOver) {
-					spawnFeathers();
-					spawnMobs();
-				}
+			// Spawn feathers and mobs
+			if (countdownOver) {
+				spawnFeathers();
+				spawnMobs();
+			}
 
-				// End game
-				if (!hasEnded()) {
-					if (players.size() == 0) {
-						endGame(GameEndReason.ALL_FINISHED);
-					}
+			// End game
+			if (!hasEnded()) {
+				if (players.size() == 0) {
+					endGame(GameEndReason.ALL_FINISHED);
 				}
 			}
 		}, 20L);
