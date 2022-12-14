@@ -163,63 +163,60 @@ public class ChickenOut extends MapGame implements Listener {
 				endGame(GameEndReason.TIME);
 			}
 
-			timerDecrementCallbacks.forEach(callback -> callback.execute());
+			timerDecrementCallbacks.forEach(Callback::execute);
 
 			if (hasActiveMap()) {
 				Bukkit.getServer().getOnlinePlayers().forEach(player -> player.setCompassTarget(config.getChickenOutAreaCenter()));
 			}
 		}, 20L);
 
-		chickenOutTask = new SimpleTask(plugin, new Runnable() {
-			@Override
-			public void run() {
-				// Remove mobs in chicken out area
-				wrappedMobs.stream().filter(m -> config.getChickenOutArea().isInside(m.getEntity().getLocation().toVector())).forEach(m -> m.getEntity().remove());
+		chickenOutTask = new SimpleTask(plugin, () -> {
+			// Remove mobs in chicken out area
+			wrappedMobs.stream().filter(m -> config.getChickenOutArea().isInside(m.getEntity().getLocation().toVector())).forEach(m -> m.getEntity().remove());
 
-				// Remove if player is eliminated
-				wrappedMobs.stream().filter(m -> !players.contains(m.getTarget())).forEach(m -> m.getEntity().remove());
+			// Remove if player is eliminated
+			wrappedMobs.stream().filter(m -> !players.contains(m.getTarget())).forEach(m -> m.getEntity().remove());
 
-				Bukkit.getServer().getOnlinePlayers().stream().filter(player -> players.contains(player.getUniqueId())).filter(player -> config.getChickenOutArea().isInside(player.getLocation().toVector())).forEach(player -> {
-					int score = getPlayerFeathers(player);
-					if (TeamManager.hasTeamManager()) {
-						Team team = TeamManager.getTeamManager().getPlayerTeam(player);
-						if (team != null) {
-							if (teamFinalScore.containsKey(team)) {
-								score += teamFinalScore.get(team);
-							}
-							teamFinalScore.put(team, score);
+			Bukkit.getServer().getOnlinePlayers().stream().filter(player -> players.contains(player.getUniqueId())).filter(player -> config.getChickenOutArea().isInside(player.getLocation().toVector())).forEach(player -> {
+				int score = getPlayerFeathers(player);
+				if (TeamManager.hasTeamManager()) {
+					Team team = TeamManager.getTeamManager().getPlayerTeam(player);
+					if (team != null) {
+						if (teamFinalScore.containsKey(team)) {
+							score += teamFinalScore.get(team);
 						}
-					} else {
-						playerFinalScore.put(player.getUniqueId(), score);
+						teamFinalScore.put(team, score);
 					}
+				} else {
+					playerFinalScore.put(player.getUniqueId(), score);
+				}
 
-					feathers.remove(player.getUniqueId());
+				feathers.remove(player.getUniqueId());
 
-					net.md_5.bungee.api.ChatColor color = net.md_5.bungee.api.ChatColor.AQUA;
-					if (TeamManager.hasTeamManager()) {
-						Team team = TeamManager.getTeamManager().getPlayerTeam(player);
-						if (team != null) {
-							color = team.getTeamColor();
-						}
+				ChatColor color = ChatColor.AQUA;
+				if (TeamManager.hasTeamManager()) {
+					Team team = TeamManager.getTeamManager().getPlayerTeam(player);
+					if (team != null) {
+						color = team.getTeamColor();
 					}
+				}
 
-					Bukkit.getServer().broadcastMessage(color + "" + ChatColor.BOLD + player.getName() + ChatColor.GOLD + ChatColor.BOLD + " chickened out");
-					player.setGameMode(GameMode.SPECTATOR);
-					tpToSpectator(player);
-					VersionIndependentSound.WITHER_HURT.play(player);
-					Firework firework = (Firework) world.spawnEntity(config.getChickenOutAreaCenter(), EntityType.FIREWORK);
-					FireworkMeta meta = firework.getFireworkMeta();
-					meta.setPower(1);
-					meta.addEffect(FireworkEffect.builder().with(FireworkEffect.Type.BALL_LARGE).withColor(org.bukkit.Color.WHITE).build());
-					firework.setFireworkMeta(meta);
-					players.remove(player.getUniqueId());
+				Bukkit.getServer().broadcastMessage(color + "" + ChatColor.BOLD + player.getName() + ChatColor.GOLD + ChatColor.BOLD + " chickened out");
+				player.setGameMode(GameMode.SPECTATOR);
+				tpToSpectator(player);
+				VersionIndependentSound.WITHER_HURT.play(player);
+				Firework firework = (Firework) world.spawnEntity(config.getChickenOutAreaCenter(), EntityType.FIREWORK);
+				FireworkMeta meta = firework.getFireworkMeta();
+				meta.setPower(1);
+				meta.addEffect(FireworkEffect.builder().with(FireworkEffect.Type.BALL_LARGE).withColor(org.bukkit.Color.WHITE).build());
+				firework.setFireworkMeta(meta);
+				players.remove(player.getUniqueId());
 
-					Event event = new ChickenOutPlayerChickenOutEvent(player, score);
-					Bukkit.getServer().getPluginManager().callEvent(event);
+				Event event = new ChickenOutPlayerChickenOutEvent(player, score);
+				Bukkit.getServer().getPluginManager().callEvent(event);
 
-					// eliminatePlayer(player, null, PlayerEliminationReason.OTHER);
-				});
-			}
+				// eliminatePlayer(player, null, PlayerEliminationReason.OTHER);
+			});
 		}, 2L);
 
 		speedFixTask = new SimpleTask(getPlugin(), new BukkitRunnable() {
@@ -239,19 +236,21 @@ public class ChickenOut extends MapGame implements Listener {
 			}
 		});
 		roundTimer = new SimpleTask(plugin, () -> {
-			countdownType = ChickenOutCountdownType.ROUND;
-			if (roundTimeLeft > 0) {
-				roundTimeLeft--;
-			} else {
-				incrementLevel();
+			if (countdownOver) {
+				countdownType = ChickenOutCountdownType.ROUND;
+				if (roundTimeLeft > 0) {
+					roundTimeLeft--;
+				} else {
+					incrementLevel();
+				}
+
+				// Handle mob removal time
+				wrappedMobs.stream().filter(w -> w.getLevel() != level).forEach(WrappedChickenOutMob::decrementRemovalTimer);
+				wrappedMobs.stream().filter(w -> w.getTimeUntilRemoval() <= 0).forEach(w -> w.getEntity().remove());
+
+				// Callbacks
+				timerDecrementCallbacks.forEach(Callback::execute);
 			}
-
-			// Handle mob removal time
-			wrappedMobs.stream().filter(w -> w.getLevel() != level).forEach(WrappedChickenOutMob::decrementRemovalTimer);
-			wrappedMobs.stream().filter(w -> w.getTimeUntilRemoval() <= 0).forEach(w -> w.getEntity().remove());
-
-			// Callbacks
-			timerDecrementCallbacks.forEach(Callback::execute);
 		}, 20L);
 
 		monitorTask = new SimpleTask(plugin, () -> {
@@ -265,11 +264,10 @@ public class ChickenOut extends MapGame implements Listener {
 			// Player food
 			Bukkit.getServer().getOnlinePlayers().forEach(player -> {
 				player.setSaturation(0);
-				player.setFoodLevel(20);
 			});
 
 			// Update targets
-			wrappedMobs.forEach(wm -> wm.updateMobTarget());
+			wrappedMobs.forEach(WrappedChickenOutMob::updateMobTarget);
 
 			// Spawn feathers and mobs
 			if (countdownOver) {

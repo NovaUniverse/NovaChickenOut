@@ -8,8 +8,10 @@ import org.apache.commons.io.FileUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -36,6 +38,17 @@ public class NovaChickenOut extends JavaPlugin implements Listener {
 	private static NovaChickenOut instance;
 
 	private ChickenOut game;
+
+	private boolean allowBarChange;
+
+	public void allowBarChange(boolean val) {
+		allowBarChange = val;
+	}
+
+	public boolean canBarChange() {
+		return allowBarChange;
+	}
+
 
 	public static NovaChickenOut getInstance() {
 		return instance;
@@ -172,4 +185,10 @@ public class NovaChickenOut extends JavaPlugin implements Listener {
 		Bukkit.getScheduler().cancelTasks(this);
 		HandlerList.unregisterAll((Plugin) this);
 	}
+
+	@EventHandler
+	public void onHungerLoss(FoodLevelChangeEvent e) {
+			e.setCancelled(!allowBarChange);
+	}
+
 }
