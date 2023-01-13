@@ -366,8 +366,6 @@ public class ChickenOut extends MapGame implements Listener {
 		setLevel(level + 1);
 	}
 
-
-
 	public void setLevel(int level) {
 		this.level = level;
 		levelChangeCallbacks.forEach(Callback::execute);
@@ -773,8 +771,6 @@ public class ChickenOut extends MapGame implements Listener {
 		Task.tryStopTask(speedFixTask);
 		Task.tryStopTask(actionBarTask);
 
-
-
 		getActiveMap().getStarterLocations().forEach(location -> {
 			Firework fw = (Firework) location.getWorld().spawnEntity(location, EntityType.FIREWORK);
 			FireworkMeta fwm = fw.getFireworkMeta();
@@ -880,8 +876,15 @@ public class ChickenOut extends MapGame implements Listener {
 			e.setCancelled(true);
 
 			if (players.contains(player.getUniqueId())) {
-				addFeathers(player, e.getItem().getItemStack().getAmount());
-				VersionIndependentSound.ITEM_PICKUP.playAtLocation(player.getLocation());
+				int amount = e.getItem().getItemStack().getAmount();
+
+				ChickenOutPlayerCollectFeatherEvent event = new ChickenOutPlayerCollectFeatherEvent(player, amount);
+				Bukkit.getServer().getPluginManager().callEvent(event);
+
+				addFeathers(player, event.getAmount());
+				if (!event.isDisablePickupSound()) {
+					VersionIndependentSound.ITEM_PICKUP.playAtLocation(player.getLocation());
+				}
 				e.getItem().remove();
 			}
 		}
