@@ -10,7 +10,7 @@ import org.apache.commons.io.FileUtils;
 import org.bukkit.plugin.Plugin;
 
 import net.zeeraa.novacore.commons.log.Log;
-import net.zeeraa.novacore.spigot.utils.ClassFinder;
+import net.zeeraa.novacore.commons.utils.ClassFinder;
 
 public class ChickenOutMobRepo {
 	private static final List<ChickenOutMobProvider> providers = new ArrayList<>();
