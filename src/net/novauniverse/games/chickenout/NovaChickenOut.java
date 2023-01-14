@@ -132,8 +132,8 @@ public class NovaChickenOut extends JavaPlugin implements Listener {
 		Bukkit.getServer().getPluginManager().registerEvents(mapSelector, this);
 
 		// Read maps
-		Log.info(getName(), "Loading maps from " + mapFolder.getPath());
-		GameManager.getInstance().readMapsFromFolder(mapFolder, worldFolder);
+		Log.info(getName(), "Scheduled loading maps from " + mapFolder.getPath());
+		GameManager.getInstance().readMapsFromFolderDelayed(mapFolder, worldFolder);
 
 		new BukkitRunnable() {
 			@Override
