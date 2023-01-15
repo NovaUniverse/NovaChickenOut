@@ -226,7 +226,6 @@ public class ChickenOut extends MapGame implements Listener {
 			}
 		}, 1L);
 		levelChangeCallbacks.add(() -> {
-
 			Bukkit.getPluginManager().callEvent(new ChickenOutPhaseChangeEvent(level));
 			roundTimeLeft = config.getLevelTime();
 			finalTimeLeft = config.getFinalRoundTime();
@@ -319,6 +318,7 @@ public class ChickenOut extends MapGame implements Listener {
 					}
 					Bukkit.getServer().getOnlinePlayers().forEach(player -> VersionIndependentUtils.get().sendTitle(player, ChatColor.AQUA + "GO", "", 0, 20, 5));
 					sendBeginEvent();
+					setLevel(1);
 					countdownOver = true;
 					Task.tryStopTask(beginCountdown);
 				}
