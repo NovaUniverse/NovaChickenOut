@@ -322,6 +322,10 @@ public class ChickenOut extends MapGame implements Listener {
 		actionBarTask = new SimpleTask(plugin, new Runnable() {
 			@Override
 			public void run() {
+				if (NovaChickenOut.getInstance().isDisableActionBar()) {
+					return;
+				}
+
 				Bukkit.getServer().getOnlinePlayers().stream().filter(player -> feathers.containsKey(player.getUniqueId()) && player.getGameMode() != GameMode.SPECTATOR).forEach(player -> {
 					int featherCount = feathers.get(player.getUniqueId());
 					VersionIndependentUtils.get().sendActionBarMessage(player, ChatColor.GREEN + "" + featherCount + " feather" + (featherCount == 1 ? "" : "s") + " collected");

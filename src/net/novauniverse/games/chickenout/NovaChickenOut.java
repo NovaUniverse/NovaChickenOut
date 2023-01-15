@@ -41,6 +41,8 @@ public class NovaChickenOut extends JavaPlugin implements Listener {
 
 	private boolean allowBarChange;
 
+	private boolean disableActionBar;
+
 	public void allowBarChange(boolean val) {
 		allowBarChange = val;
 	}
@@ -49,6 +51,17 @@ public class NovaChickenOut extends JavaPlugin implements Listener {
 		return allowBarChange;
 	}
 
+	public void setAllowBarChange(boolean allowBarChange) {
+		this.allowBarChange = allowBarChange;
+	}
+
+	public boolean isDisableActionBar() {
+		return disableActionBar;
+	}
+
+	public void setDisableActionBar(boolean disableActionBar) {
+		this.disableActionBar = disableActionBar;
+	}
 
 	public static NovaChickenOut getInstance() {
 		return instance;
@@ -62,6 +75,8 @@ public class NovaChickenOut extends JavaPlugin implements Listener {
 	public void onEnable() {
 		NovaChickenOut.instance = this;
 		saveDefaultConfig();
+
+		this.disableActionBar = false;
 
 		// Create files and folders
 		File mapFolder = new File(this.getDataFolder().getPath() + File.separator + "Maps");
@@ -188,7 +203,7 @@ public class NovaChickenOut extends JavaPlugin implements Listener {
 
 	@EventHandler
 	public void onHungerLoss(FoodLevelChangeEvent e) {
-			e.setCancelled(!allowBarChange);
+		e.setCancelled(!allowBarChange);
 	}
 
 }
