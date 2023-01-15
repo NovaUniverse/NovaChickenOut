@@ -305,12 +305,18 @@ public class ChickenOut extends MapGame implements Listener {
 		beginCountdown = new SimpleTask(plugin, new Runnable() {
 			@Override
 			public void run() {
+				ChickenOutCountdownEvent event = new ChickenOutCountdownEvent(beginCountdownValue);
+				Bukkit.getServer().getPluginManager().callEvent(event);
 				if (beginCountdownValue > 0) {
-					VersionIndependentSound.NOTE_PLING.broadcast(1.0F, 1.0F);
+					if (!event.isDisableCountdownSoundEffect()) {
+						VersionIndependentSound.NOTE_PLING.broadcast(1.0F, 1.0F);
+					}
 					Bukkit.getServer().getOnlinePlayers().forEach(player -> VersionIndependentUtils.get().sendTitle(player, ChatColor.AQUA + "" + beginCountdownValue, "", 0, 20, 0));
 					beginCountdownValue--;
 				} else {
-					VersionIndependentSound.NOTE_PLING.broadcast(1.0F, 1.25F);
+					if (!event.isDisableCountdownSoundEffect()) {
+						VersionIndependentSound.NOTE_PLING.broadcast(1.0F, 1.25F);
+					}
 					Bukkit.getServer().getOnlinePlayers().forEach(player -> VersionIndependentUtils.get().sendTitle(player, ChatColor.AQUA + "GO", "", 0, 20, 5));
 					sendBeginEvent();
 					countdownOver = true;
