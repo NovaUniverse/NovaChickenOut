@@ -63,8 +63,11 @@ public class ChickenOut extends MapGame implements Listener {
 
 	private List<Location> lightningLocations;
 
-	public static final int CHANCE_5_FEATHERS = 5;
-	public static final int CHANCE_10_FEATHERS = 1;
+	private static final int GREEN_CHANCE_LEVEL_INCREMENT = 1;
+	private static final int RED_CHANCE_LEVEL_INCREMENT = 1;
+
+	public static final int CHANCE_GREEN_FEATHERS = 5;
+	public static final int CHANCE_RED_FEATHERS = 1;
 
 	public static final double MOB_PLAYER_SPAWN_RADIUS = 16;
 
@@ -425,11 +428,11 @@ public class ChickenOut extends MapGame implements Listener {
 						int count = 1;
 						int r = getRandom().nextInt(100);
 						Color color = Color.WHITE;
-						if (r < CHANCE_5_FEATHERS) {
+						if (r < CHANCE_GREEN_FEATHERS + ((level - 1) * GREEN_CHANCE_LEVEL_INCREMENT)) {
 							count = 5;
 							color = Color.GREEN;
 						}
-						if (r < CHANCE_10_FEATHERS) {
+						if (r < CHANCE_RED_FEATHERS + ((level - 1) * RED_CHANCE_LEVEL_INCREMENT)) {
 							count = 10;
 							color = Color.RED;
 						}
