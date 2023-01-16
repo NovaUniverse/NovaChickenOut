@@ -29,6 +29,8 @@ public class ChickenOutConfig extends MapModule {
 	private int levelTime;
 	private int maxLevel;
 
+	private int initialCountdown;
+
 	private int finalRoundTime;
 
 	public ChickenOutConfig(JSONObject json) {
@@ -64,6 +66,8 @@ public class ChickenOutConfig extends MapModule {
 		chickenOutAreaCenter = null;
 
 		finalRoundTime = json.getInt("final_round_time");
+
+		initialCountdown = json.getInt("initial_countdown");
 	}
 
 	public List<VectorArea> getMobSpawnAreas() {
@@ -73,7 +77,7 @@ public class ChickenOutConfig extends MapModule {
 	public List<VectorArea> getFeatherSpawnAreas() {
 		return featherSpawnAreas;
 	}
-	
+
 	public List<XYZLocation> getLightningLocations() {
 		return lightningLocations;
 	}
@@ -100,6 +104,10 @@ public class ChickenOutConfig extends MapModule {
 
 	public int getMaxLevel() {
 		return maxLevel;
+	}
+
+	public int getInitialCountdown() {
+		return initialCountdown;
 	}
 
 	public Location getChickenOutAreaCenter() {
