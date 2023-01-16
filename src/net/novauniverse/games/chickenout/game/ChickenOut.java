@@ -267,11 +267,6 @@ public class ChickenOut extends MapGame implements Listener {
 			wrappedFeathers.removeIf(w -> w.getItem().isDead());
 			wrappedMobs.removeIf(w -> w.getEntity().isDead());
 
-			// Player food
-			Bukkit.getServer().getOnlinePlayers().forEach(player -> {
-				player.setSaturation(0);
-			});
-
 			// Update targets
 			wrappedMobs.forEach(WrappedChickenOutMob::updateMobTarget);
 
