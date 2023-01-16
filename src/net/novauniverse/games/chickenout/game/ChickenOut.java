@@ -30,6 +30,7 @@ import net.zeeraa.novacore.spigot.teams.TeamManager;
 import net.zeeraa.novacore.spigot.utils.*;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -513,7 +514,7 @@ public class ChickenOut extends MapGame implements Listener {
 
 	@Override
 	public boolean isPVPEnabled() {
-		return false;
+		return true;
 	}
 
 	@Override
@@ -559,7 +560,6 @@ public class ChickenOut extends MapGame implements Listener {
 	 */
 	protected void tpToArena(Player player, Location location) {
 		player.teleport(location.getWorld().getSpawnLocation());
-		PlayerUtils.clearPlayerInventory(player);
 		PlayerUtils.clearPotionEffects(player);
 		PlayerUtils.resetPlayerXP(player);
 		player.setHealth(player.getMaxHealth());
@@ -567,6 +567,19 @@ public class ChickenOut extends MapGame implements Listener {
 		player.setFoodLevel(20);
 		player.setGameMode(GameMode.SURVIVAL);
 		player.teleport(location);
+
+		setupInventory(player);
+
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				player.teleport(location);
+			}
+		}.runTaskLater(NovaChickenOut.getInstance(), 10L);
+	}
+
+	public void setupInventory(Player player) {
+		PlayerUtils.clearPlayerInventory(player);
 
 		Team team = null;
 		if (TeamManager.hasTeamManager()) {
@@ -585,16 +598,14 @@ public class ChickenOut extends MapGame implements Listener {
 			chestplateBuilder.setLeatherArmorColor(ChatColorRGBMapper.chatColorToRGBColorData(team.getTeamColor()).toBukkitColor());
 		}
 
+		ItemBuilder knockbackStick = new ItemBuilder(Material.STICK);
+		knockbackStick.setName(ChatColor.GOLD + "Knockback stick");
+		knockbackStick.addEnchant(Enchantment.KNOCKBACK, 1, true);
+
 		player.getInventory().addItem(swordBuilder.build());
 		player.getInventory().addItem(compassBuilder.build());
+		player.getInventory().addItem(knockbackStick.build());
 		player.getInventory().setChestplate(chestplateBuilder.build());
-
-		new BukkitRunnable() {
-			@Override
-			public void run() {
-				player.teleport(location);
-			}
-		}.runTaskLater(NovaChickenOut.getInstance(), 10L);
 	}
 
 	@Override
@@ -870,6 +881,10 @@ public class ChickenOut extends MapGame implements Listener {
 	public void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
 		if (e.getDamager() instanceof Firework) {
 			e.setCancelled(true);
+		}
+
+		if (e.getEntity() instanceof Player && e.getDamager() instanceof Player) {
+			e.setDamage(0);
 		}
 	}
 
