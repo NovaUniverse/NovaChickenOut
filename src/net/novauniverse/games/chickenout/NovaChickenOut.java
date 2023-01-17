@@ -22,8 +22,6 @@ import org.json.JSONObject;
 import net.novauniverse.games.chickenout.game.ChickenOut;
 import net.novauniverse.games.chickenout.game.config.ChickenOutConfig;
 import net.novauniverse.games.chickenout.game.mobs.ChickenOutMobRepo;
-import net.novauniverse.games.chickenout.game.mobs.implementation.level4.irongolem.ChickenOutIronGolemSpawner;
-import net.novauniverse.games.chickenout.game.mobs.implementation.level4.irongolem.DefaultChickenOutIronGolemSpawner;
 import net.zeeraa.novacore.commons.log.Log;
 import net.zeeraa.novacore.commons.utils.JSONFileUtils;
 import net.zeeraa.novacore.spigot.command.AllowedSenders;
@@ -44,16 +42,6 @@ public class NovaChickenOut extends JavaPlugin implements Listener {
 	private boolean allowBarChange;
 
 	private boolean disableActionBar;
-
-	private ChickenOutIronGolemSpawner ironGolemSpawner;
-
-	public ChickenOutIronGolemSpawner getIronGolemSpawner() {
-		return ironGolemSpawner;
-	}
-
-	public void setIronGolemSpawner(ChickenOutIronGolemSpawner ironGolemSpawner) {
-		this.ironGolemSpawner = ironGolemSpawner;
-	}
 
 	public void allowBarChange(boolean val) {
 		allowBarChange = val;
@@ -90,7 +78,6 @@ public class NovaChickenOut extends JavaPlugin implements Listener {
 
 		this.disableActionBar = false;
 
-		ironGolemSpawner = new DefaultChickenOutIronGolemSpawner();
 
 		// Create files and folders
 		File mapFolder = new File(this.getDataFolder().getPath() + File.separator + "Maps");
