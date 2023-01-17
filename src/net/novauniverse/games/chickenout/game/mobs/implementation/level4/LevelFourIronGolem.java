@@ -1,9 +1,9 @@
 package net.novauniverse.games.chickenout.game.mobs.implementation.level4;
 
+import net.novauniverse.games.chickenout.NovaChickenOut;
 import net.novauniverse.games.chickenout.game.mobs.ChickenOutMobProvider;
 import org.bukkit.Location;
 import org.bukkit.entity.Creature;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -16,7 +16,7 @@ public class LevelFourIronGolem implements ChickenOutMobProvider {
 
 	@Override
 	public Creature spawn(Location location, Player player) {
-		Creature creature = (Creature) location.getWorld().spawnEntity(location, EntityType.IRON_GOLEM);
+		Creature creature = NovaChickenOut.getInstance().getIronGolemSpawner().spawnGolem(location, player);
 
 		creature.getEquipment().clear();
 
