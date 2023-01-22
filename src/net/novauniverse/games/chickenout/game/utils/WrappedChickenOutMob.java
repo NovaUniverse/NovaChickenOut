@@ -12,7 +12,7 @@ import net.zeeraa.novacore.spigot.utils.XYLocation;
 public class WrappedChickenOutMob {
 	public static final int STUCK_THRESHOLD = 3;
 
-	private Creature entity;
+	private final Creature entity;
 	private UUID target;
 	private int level;
 	private int timeUntilRemoval;
