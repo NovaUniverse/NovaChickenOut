@@ -28,7 +28,7 @@ public class WrappedChickenOutFeather {
 
 	public void showParticles() {
 		if (!item.isDead()) {
-			NovaCore.getInstance().getNovaParticleProvider().showRedstoneParticle(item.getLocation(), particleColor);
+			NovaCore.getInstance().getNovaParticleProvider().showColoredRedstoneParticle(item.getLocation(), particleColor);
 		}
 	}
 }
