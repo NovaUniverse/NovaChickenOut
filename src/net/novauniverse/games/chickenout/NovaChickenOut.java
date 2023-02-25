@@ -78,14 +78,13 @@ public class NovaChickenOut extends JavaPlugin implements Listener {
 
 		this.disableActionBar = false;
 
-
 		// Create files and folders
 		File mapFolder = new File(this.getDataFolder().getPath() + File.separator + "Maps");
 		File worldFolder = new File(this.getDataFolder().getPath() + File.separator + "Worlds");
 
 		if (NovaCoreGameEngine.getInstance().getRequestedGameDataDirectory() != null) {
-			mapFolder = new File(NovaCoreGameEngine.getInstance().getRequestedGameDataDirectory().getAbsolutePath() + File.separator + getName() + File.separator + "Maps");
-			worldFolder = new File(NovaCoreGameEngine.getInstance().getRequestedGameDataDirectory().getAbsolutePath() + File.separator + getName() + File.separator + "Worlds");
+			mapFolder = new File(NovaCoreGameEngine.getInstance().getRequestedGameDataDirectory().getAbsolutePath() + File.separator + "ChickenOut" + File.separator + "Maps");
+			worldFolder = new File(NovaCoreGameEngine.getInstance().getRequestedGameDataDirectory().getAbsolutePath() + File.separator + "ChickenOut" + File.separator + "Worlds");
 		}
 
 		File mapOverrides = new File(this.getDataFolder().getPath() + File.separator + "map_overrides.json");
